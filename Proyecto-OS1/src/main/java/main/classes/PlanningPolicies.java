@@ -4,10 +4,18 @@
  */
 package main.classes;
 
+import helpers.CustomQueue;
 /**
  *
  * @author cehernandez
  */
-public class Process {
+public class PlanningPolicies {
+    
+    private final CustomQueue<PCB> readyQueue;
+
+    public PlanningPolicies(CustomQueue<PCB> readyQueue) {
+        this.readyQueue = readyQueue;
+    }
+    
     
 }

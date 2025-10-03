@@ -9,22 +9,39 @@ package main.classes;
  * @author cehernandez
  */
 public class PCB {
-    private String processName;
+    
+    public enum ProcessState {
+        NEW,
+        READY,
+        RUNNING,
+        BLOCKED,
+        FINISHED,
+        READY_SUSPENDED,
+        BLOCKED_SUSPENDED
+    }
+    
     private int processID;
-    private String state;
-    private int totalInstructions;
-    private int remainingInstructions;
-    private String processType;
-    private int cpuBound;
-    private int ioBound;
+    private String processName; 
+    private int totalInstructions; 
+    private String processType; 
+    
+    private int cyclesForException; //  I/0 bound 
+    private int satisfyExceptionCycles; //  I/0 bound 
+    
+    private ProcessState state;
     private int programCounter;
-    private int timeInCpu;
+    private int remainingInstructions;
+    private int timeInCpu; 
+    private int memoryAddressRegister;
     private int stackPointer;
+  
+    private int cpuBound; 
+    private int ioBound;  
 
     public PCB(String processName, int processID, String state, int totalInstructions, int remainingInstructions, String processType, int cpuBound, int ioBound, int programCounter, int timeInCpu, int stackPointer) {
         this.processName = processName;
         this.processID = processID;
-        this.state = state;
+        this.state = ProcessState.NEW;
         this.totalInstructions = totalInstructions;
         this.remainingInstructions = remainingInstructions;
         this.processType = processType;
@@ -33,8 +50,8 @@ public class PCB {
         this.programCounter = programCounter;
         this.timeInCpu = timeInCpu;
         this.stackPointer = stackPointer;
-        
-         if (cpuBound > ioBound) {
+
+        if (cpuBound > ioBound) {
             this.processType = "CPU-Bound";
         } else if (ioBound > cpuBound) {
             this.processType = "I/O-Bound";
@@ -59,11 +76,11 @@ public class PCB {
         this.processID = processID;
     }
 
-    public String getState() {
+    public ProcessState getState() {
         return state;
     }
-
-    public void setState(String state) {
+    
+    public void setState(ProcessState state) {
         this.state = state;
     }
 
@@ -130,8 +147,5 @@ public class PCB {
     public void setStackPointer(int stackPointer) {
         this.stackPointer = stackPointer;
     }
-    
-    
-    
-    
+
 }
