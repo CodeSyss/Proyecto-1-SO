@@ -8,8 +8,8 @@ package main.classes;
  *
  * @author cehernandez
  */
-public class PCB {
-    
+public class PCB implements Runnable {
+
     public enum ProcessState {
         NEW,
         READY,
@@ -19,24 +19,24 @@ public class PCB {
         READY_SUSPENDED,
         BLOCKED_SUSPENDED
     }
-    
+
     private int processID;
-    private String processName; 
-    private int totalInstructions; 
-    private String processType; 
-    
+    private String processName;
+    private int totalInstructions;
+    private String processType;
+
     private int cyclesForException; //  I/0 bound 
     private int satisfyExceptionCycles; //  I/0 bound 
-    
+
     private ProcessState state;
     private int programCounter;
     private int remainingInstructions;
-    private int timeInCpu; 
+    private int timeInCpu;
     private int memoryAddressRegister;
     private int stackPointer;
-  
-    private int cpuBound; 
-    private int ioBound;  
+
+    private int cpuBound;
+    private int ioBound;
 
     public PCB(String processName, int processID, String state, int totalInstructions, int remainingInstructions, String processType, int cpuBound, int ioBound, int programCounter, int timeInCpu, int stackPointer) {
         this.processName = processName;
@@ -60,6 +60,10 @@ public class PCB {
         }
     }
 
+    @Override
+    public void run() {
+    }
+
     public String getProcessName() {
         return processName;
     }
@@ -79,7 +83,7 @@ public class PCB {
     public ProcessState getState() {
         return state;
     }
-    
+
     public void setState(ProcessState state) {
         this.state = state;
     }
