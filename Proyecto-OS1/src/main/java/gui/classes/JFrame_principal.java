@@ -4,6 +4,13 @@
  */
 package gui.classes;
 import tipografias.Fuentes;
+import javax.swing.JOptionPane;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.IOException;
+import java.io.FileNotFoundException;
 
 /**
  *
@@ -45,9 +52,9 @@ public class JFrame_principal extends javax.swing.JFrame {
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jButton5 = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
+        DuracionCiclo = new javax.swing.JTextField();
+        GuardarConfig = new javax.swing.JButton();
+        CargarConfig = new javax.swing.JButton();
         jLabel9 = new javax.swing.JLabel();
         jComboBox2 = new javax.swing.JComboBox<>();
         jPanel2 = new javax.swing.JPanel();
@@ -100,27 +107,26 @@ public class JFrame_principal extends javax.swing.JFrame {
 
         jLabel4.setText("Duracion del Ciclo (ms):");
 
-        jTextField1.setText("jTextField1");
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+        DuracionCiclo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+                DuracionCicloActionPerformed(evt);
             }
         });
 
-        jButton5.setBackground(new java.awt.Color(17, 68, 68));
-        jButton5.setForeground(new java.awt.Color(255, 255, 255));
-        jButton5.setText("Guardar Config");
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
+        GuardarConfig.setBackground(new java.awt.Color(17, 68, 68));
+        GuardarConfig.setForeground(new java.awt.Color(255, 255, 255));
+        GuardarConfig.setText("Guardar Config");
+        GuardarConfig.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
+                GuardarConfigActionPerformed(evt);
             }
         });
 
-        jButton6.setBackground(new java.awt.Color(182, 203, 203));
-        jButton6.setText("Cargar Config");
-        jButton6.addActionListener(new java.awt.event.ActionListener() {
+        CargarConfig.setBackground(new java.awt.Color(182, 203, 203));
+        CargarConfig.setText("Cargar Config");
+        CargarConfig.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton6ActionPerformed(evt);
+                CargarConfigActionPerformed(evt);
             }
         });
 
@@ -142,9 +148,9 @@ public class JFrame_principal extends javax.swing.JFrame {
                 .addGap(26, 26, 26))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(28, 28, 28)
-                .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(GuardarConfig, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
-                .addComponent(jButton6)
+                .addComponent(CargarConfig)
                 .addGap(68, 68, 68))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
@@ -152,7 +158,7 @@ public class JFrame_principal extends javax.swing.JFrame {
                     .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(DuracionCiclo, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -169,15 +175,15 @@ public class JFrame_principal extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(DuracionCiclo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel9)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton5)
-                    .addComponent(jButton6))
+                    .addComponent(GuardarConfig)
+                    .addComponent(CargarConfig))
                 .addGap(14, 14, 14))
         );
 
@@ -314,17 +320,49 @@ public class JFrame_principal extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton4ActionPerformed
 
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton5ActionPerformed
+    private void GuardarConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GuardarConfigActionPerformed
+        String duracionCiclo = DuracionCiclo.getText();
+        String nombreArchivo = "configuracion.csv";
 
-    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton6ActionPerformed
+    if (duracionCiclo.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Debe ingresar un valor para la Duración del Ciclo.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
+    try (PrintWriter pw = new PrintWriter(new FileWriter(nombreArchivo))) {
+        pw.println(duracionCiclo); 
+        
+        JOptionPane.showMessageDialog(this, "Configuración guardada exitosamente en " + nombreArchivo, "Guardado", JOptionPane.INFORMATION_MESSAGE);
+
+    } catch (IOException e) {
+        JOptionPane.showMessageDialog(this, "Error al guardar la configuración: " + e.getMessage(), "Error de E/S", JOptionPane.ERROR_MESSAGE);
+    }
+    }//GEN-LAST:event_GuardarConfigActionPerformed
+
+    private void CargarConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CargarConfigActionPerformed
+        String nombreArchivo = "configuracion.csv";
+
+    try (BufferedReader br = new BufferedReader(new FileReader(nombreArchivo))) {
+        String duracionCicloLeida = br.readLine(); 
+
+        if (duracionCicloLeida != null) {
+            DuracionCiclo.setText(duracionCicloLeida.trim()); 
+            JOptionPane.showMessageDialog(this, "Configuración cargada exitosamente desde " + nombreArchivo, "Cargado", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, "El archivo de configuración está vacío.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+        }
+
+    } catch (FileNotFoundException e) {
+        JOptionPane.showMessageDialog(this, "Archivo de configuración no encontrado: " + nombreArchivo, "Error de Archivo", JOptionPane.ERROR_MESSAGE);
+    } catch (IOException e) {
+        JOptionPane.showMessageDialog(this, "Error al leer la configuración: " + e.getMessage(), "Error de E/S", JOptionPane.ERROR_MESSAGE);
+    }
+
+    }//GEN-LAST:event_CargarConfigActionPerformed
+
+    private void DuracionCicloActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DuracionCicloActionPerformed
+            // TODO add your handling code here:
+    }//GEN-LAST:event_DuracionCicloActionPerformed
 
     /**
      * @param args the command line arguments
@@ -352,12 +390,13 @@ public class JFrame_principal extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton CargarConfig;
+    private javax.swing.JTextField DuracionCiclo;
+    private javax.swing.JButton GuardarConfig;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton6;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JComboBox<String> jComboBox2;
     private javax.swing.JLabel jLabel1;
@@ -371,7 +410,6 @@ public class JFrame_principal extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
     // End of variables declaration//GEN-END:variables
