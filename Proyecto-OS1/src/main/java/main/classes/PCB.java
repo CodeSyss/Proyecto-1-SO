@@ -22,21 +22,27 @@ public class PCB implements Runnable {
 
     private int processID;
     private String processName;
-    private int totalInstructions;
-    private String processType;
+    private String user;
+    
+    private int memoryAddressRegister;
+    
 
+    private ProcessState state;
+    private int priority; 
+    private int cpuBound;
+    private int ioBound;
     private int cyclesForException; //  I/0 bound 
     private int satisfyExceptionCycles; //  I/0 bound 
 
-    private ProcessState state;
+    
     private int programCounter;
     private int remainingInstructions;
     private int timeInCpu;
-    private int memoryAddressRegister;
     private int stackPointer;
+    private int totalInstructions;
+    private String processType;
 
-    private int cpuBound;
-    private int ioBound;
+   
 
     public PCB(String processName, int processID, String state, int totalInstructions, int remainingInstructions, String processType, int cpuBound, int ioBound, int programCounter, int timeInCpu, int stackPointer) {
         this.processName = processName;
