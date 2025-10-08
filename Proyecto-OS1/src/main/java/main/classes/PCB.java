@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package main.classes;
+import java.util.UUID;
 
 /**
  *
@@ -20,7 +21,7 @@ public class PCB implements Runnable {
         BLOCKED_SUSPENDED
     }
 
-    private int processID;
+    private UUID processID;
     private String processName;
     private String user;
     
@@ -46,7 +47,7 @@ public class PCB implements Runnable {
 
     public PCB(String processName, int processID, String state, int totalInstructions, int remainingInstructions, String processType, int cpuBound, int ioBound, int programCounter, int timeInCpu, int stackPointer) {
         this.processName = processName;
-        this.processID = processID;
+        this.processID = UUID.randomUUID(); 
         this.state = ProcessState.NEW;
         this.totalInstructions = totalInstructions;
         this.remainingInstructions = remainingInstructions;
@@ -78,13 +79,14 @@ public class PCB implements Runnable {
         this.processName = processName;
     }
 
-    public int getProcessID() {
+    public UUID getProcessID() {
         return processID;
     }
 
-    public void setProcessID(int processID) {
+    public void setProcessID(UUID processID) {
         this.processID = processID;
     }
+
 
     public ProcessState getState() {
         return state;
