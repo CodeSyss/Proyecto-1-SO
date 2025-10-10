@@ -15,19 +15,19 @@ public class Simulator implements Runnable {
     private final CPU cpu;
     private final PlanningPolicies planningPolicies;
 
-    private final CustomQueue<PCB> newQueue;
-    private final CustomQueue<PCB> readyQueue;
-    private final CustomQueue<PCB> blockedQueue;
-    private final CustomQueue<PCB> finishedQueue;
-    private final CustomQueue<PCB> readySuspendedQueue;
-    private final CustomQueue<PCB> blockedSuspendedQueue;
+    private final CustomQueue<PCB> newQueue; // Cola a largo plazo
+    private final CustomQueue<PCB> readyQueue; // Cola a corto plazo
+    private final CustomQueue<PCB> blockedQueue; // Cola a corto plazo
+    private final CustomQueue<PCB> finishedQueue; // Cola a largo plazo
+    private final CustomQueue<PCB> readySuspendedQueue; // Cola a mediano plazo
+    private final CustomQueue<PCB> blockedSuspendedQueue; // Cola a mediano plazo
 
     private volatile int globalCycle;  // Mi reloj Global para cada ciclo 
     private volatile int cycleDurationMs;  // Duración del ciclo de ejecución en mi simulación
 
     public Simulator() {
 
-        this.cycleDurationMs = 0;
+        this.cycleDurationMs = 1000;
         this.globalCycle = 0;
 
         this.newQueue = new CustomQueue<>();
@@ -45,11 +45,31 @@ public class Simulator implements Runnable {
     @Override
     public void run() {
         while (true) {
-            
-            //
+
             try {
 
-                // Ejecutar toda la lógica de un ciclo (planificar, mover procesos, etc.)
+                // --- 1. PLANIFICADOR A LARGO PLAZO (Admitir nuevos procesos)
+                if (!newQueue.isEmpty()) {
+                    PCB processToAdmit = newQueue.dequeue();
+                    processToAdmit.setState(PCB.ProcessState.READY);
+                    readyQueue.enqueue(processToAdmit);
+
+                    System.out.println("(Cycle " + globalCycle + "): Admitted Process ID " + processToAdmit.getProcessID() + " to Ready Queue.");
+                    System.out.println("SIMULATOR: Proceso Listo -> " + readyQueue.toString()); 
+                }
+
+                // --- 2. PLANIFICADOR A CORTO PLAZO (Despachar proceso a la CPU) 
+                if (cpu.isAvailable() && !readyQueue.isEmpty()) {
+                    // Hacer las políticas de planificación para que elijan el siguiente.
+                    // Por ahora, asumimos FCFS.
+                    PCB processToDispatch = readyQueue.dequeue();
+
+                    cpu.loadProcess(processToDispatch);
+
+                    System.out.println("(Cycle " + globalCycle + "): Dispatched Process ID " + processToDispatch.getProcessID() + " to CPU.");
+                }
+
+                // Terminar toda la lógica de un ciclo (planificar, mover procesos, etc.)
                 this.globalCycle++;
                 System.out.println("Ciclo de Reloj Global: " + this.globalCycle);
                 Thread.sleep(this.cycleDurationMs);
@@ -63,6 +83,21 @@ public class Simulator implements Runnable {
     public void setCycleDuration(int newDurationMs) {
         // Se puede agregar validación por si es un número negativo
         this.cycleDurationMs = newDurationMs;
+    }
+
+    public void createProcessFromUI(String name, int instructions, String type, int cyclesForException, int satisfyCycles) {
+        PCB newProcess;
+
+        if ("I/O Bound".equals(type)) {
+            System.out.println("SIMULATOR: Creando un proceso I/O Bound.");
+            newProcess = new PCB(name, instructions, cyclesForException, satisfyCycles);
+        } else {
+            System.out.println("SIMULATOR: Creando un proceso CPU Bound.");
+            newProcess = new PCB(name, instructions);
+        }
+        newQueue.enqueue(newProcess);
+        System.out.println("SIMULATOR: Proceso CREADO -> " + newProcess.toString());
+
     }
 
 }

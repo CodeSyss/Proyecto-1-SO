@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package gui.classes;
+
 import tipografias.Fuentes;
 import javax.swing.JOptionPane;
 import java.io.BufferedReader;
@@ -11,25 +12,28 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.io.FileNotFoundException;
-import main.classes.ThreadRunnable;
+import main.classes.Simulator;
 
 /**
  *
  * @author fabys
  */
 public class JFrame_principal extends javax.swing.JFrame {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(JFrame_principal.class.getName());
 
     /**
      * Creates new form JFrame_principal
      */
-    
     Fuentes tipoFuente;
-    public JFrame_principal() {
+    private Simulator simulator;
+
+    public JFrame_principal(Simulator simulator) {
+        this.simulator = simulator;
+
         initComponents();
         tipoFuente = new Fuentes();
-        jLabel1.setFont(tipoFuente.fuente(tipoFuente.Inter,0,22));
+        jLabel1.setFont(tipoFuente.fuente(tipoFuente.Inter, 0, 22));
         setSize(1530, 800);
         setLocationRelativeTo(null);
         CicloExcepcion.setVisible(false);
@@ -37,8 +41,6 @@ public class JFrame_principal extends javax.swing.JFrame {
         TextCicloExcepcion.setVisible(false);
         TextCicloSatisfacer.setVisible(false);
     }
-   
-      
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -459,9 +461,52 @@ public class JFrame_principal extends javax.swing.JFrame {
     }//GEN-LAST:event_ComboBoxActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        String processName = nombreProceso.getText();
-        int totalInstructions = Integer.parseInt(Instructions.getText());
 
+        String processName = nombreProceso.getText();
+        String instructionsText = Instructions.getText();
+        String processType = (String) ComboBox.getSelectedItem();
+
+        if (processName.isEmpty() || instructionsText.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "El nombre y el número de instrucciones no pueden estar vacíos.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int totalInstructions;
+        try {
+            totalInstructions = Integer.parseInt(instructionsText);
+            if (totalInstructions <= 0) {
+                throw new NumberFormatException();
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Por favor, introduce un número de instrucciones válido y positivo.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int cyclesForException = 0;
+        int satisfyCycles = 0;
+
+        // Si es I/O-Bound
+        if ("I/O Bound".equals(processType)) {
+            try {
+                cyclesForException = Integer.parseInt(TextCicloExcepcion.getText());
+                satisfyCycles = Integer.parseInt(TextCicloSatisfacer.getText());
+                if (cyclesForException <= 0 || satisfyCycles <= 0) {
+                    throw new NumberFormatException();
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Por favor, introduce números válidos y positivos para los ciclos de E/S.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        this.simulator.createProcessFromUI(processName, totalInstructions, processType, cyclesForException, satisfyCycles);
+
+        nombreProceso.setText("");
+        Instructions.setText("");
+        TextCicloExcepcion.setText("");
+        TextCicloSatisfacer.setText("");
+
+        JOptionPane.showMessageDialog(this, "Proceso '" + processName + "' añadido al sistema.", "Proceso Creado", JOptionPane.INFORMATION_MESSAGE);
 
     }//GEN-LAST:event_jButton4ActionPerformed
 
@@ -469,65 +514,64 @@ public class JFrame_principal extends javax.swing.JFrame {
         String duracionCiclo = DuracionCiclo.getText();
         String nombreArchivo = "configuracion.csv";
 
-    if (duracionCiclo.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Debe ingresar un valor para la Duración del Ciclo.", "Error", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
+        if (duracionCiclo.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar un valor para la Duración del Ciclo.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-    try (PrintWriter pw = new PrintWriter(new FileWriter(nombreArchivo))) {
-        pw.println(duracionCiclo); 
-        
-        JOptionPane.showMessageDialog(this, "Configuración guardada exitosamente en " + nombreArchivo, "Guardado", JOptionPane.INFORMATION_MESSAGE);
+        try (PrintWriter pw = new PrintWriter(new FileWriter(nombreArchivo))) {
+            pw.println(duracionCiclo);
 
-    } catch (IOException e) {
-        JOptionPane.showMessageDialog(this, "Error al guardar la configuración: " + e.getMessage(), "Error de E/S", JOptionPane.ERROR_MESSAGE);
-    }
+            JOptionPane.showMessageDialog(this, "Configuración guardada exitosamente en " + nombreArchivo, "Guardado", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error al guardar la configuración: " + e.getMessage(), "Error de E/S", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_GuardarConfigActionPerformed
 
     private void CargarConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CargarConfigActionPerformed
         String nombreArchivo = "configuracion.csv";
 
-    try (BufferedReader br = new BufferedReader(new FileReader(nombreArchivo))) {
-        String duracionCicloLeida = br.readLine(); 
+        try (BufferedReader br = new BufferedReader(new FileReader(nombreArchivo))) {
+            String duracionCicloLeida = br.readLine();
 
-        if (duracionCicloLeida != null) {
-            DuracionCiclo.setText(duracionCicloLeida.trim()); 
-            JOptionPane.showMessageDialog(this, "Configuración cargada exitosamente desde " + nombreArchivo, "Cargado", JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this, "El archivo de configuración está vacío.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            if (duracionCicloLeida != null) {
+                DuracionCiclo.setText(duracionCicloLeida.trim());
+                JOptionPane.showMessageDialog(this, "Configuración cargada exitosamente desde " + nombreArchivo, "Cargado", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "El archivo de configuración está vacío.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            }
+
+        } catch (FileNotFoundException e) {
+            JOptionPane.showMessageDialog(this, "Archivo de configuración no encontrado: " + nombreArchivo, "Error de Archivo", JOptionPane.ERROR_MESSAGE);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error al leer la configuración: " + e.getMessage(), "Error de E/S", JOptionPane.ERROR_MESSAGE);
         }
-
-    } catch (FileNotFoundException e) {
-        JOptionPane.showMessageDialog(this, "Archivo de configuración no encontrado: " + nombreArchivo, "Error de Archivo", JOptionPane.ERROR_MESSAGE);
-    } catch (IOException e) {
-        JOptionPane.showMessageDialog(this, "Error al leer la configuración: " + e.getMessage(), "Error de E/S", JOptionPane.ERROR_MESSAGE);
-    }
 
     }//GEN-LAST:event_CargarConfigActionPerformed
 
     private void DuracionCicloActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DuracionCicloActionPerformed
-            // TODO add your handling code here:
+        // TODO add your handling code here:
     }//GEN-LAST:event_DuracionCicloActionPerformed
 
     private void ComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_ComboBoxItemStateChanged
-          String tipoSeleccionado = (String) ComboBox.getSelectedItem();
-    
+        String tipoSeleccionado = (String) ComboBox.getSelectedItem();
+
         if (evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
-        
-        boolean esIOBound = "I/O Bound".equals(tipoSeleccionado);
-        
-     
-        CicloExcepcion.setVisible(esIOBound);
-       
-        TextCicloExcepcion.setVisible(esIOBound);
-        
-        CicloSatisfacer.setVisible(esIOBound);
-        
-        TextCicloSatisfacer.setVisible(esIOBound);
-        
-        this.revalidate();
-        this.repaint();
-    }
+
+            boolean esIOBound = "I/O Bound".equals(tipoSeleccionado);
+
+            CicloExcepcion.setVisible(esIOBound);
+
+            TextCicloExcepcion.setVisible(esIOBound);
+
+            CicloSatisfacer.setVisible(esIOBound);
+
+            TextCicloSatisfacer.setVisible(esIOBound);
+
+            this.revalidate();
+            this.repaint();
+        }
     }//GEN-LAST:event_ComboBoxItemStateChanged
 
     /**
@@ -539,6 +583,12 @@ public class JFrame_principal extends javax.swing.JFrame {
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
+
+        Simulator mainSimulator = new Simulator();
+
+        Thread simulatorThread = new Thread(mainSimulator);
+        simulatorThread.start();
+
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -552,7 +602,7 @@ public class JFrame_principal extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new JFrame_principal().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> new JFrame_principal(mainSimulator).setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
