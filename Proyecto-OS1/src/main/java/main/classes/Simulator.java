@@ -45,6 +45,8 @@ public class Simulator implements Runnable {
     @Override
     public void run() {
         while (true) {
+            
+            //
             try {
 
                 // Ejecutar toda la lógica de un ciclo (planificar, mover procesos, etc.)
