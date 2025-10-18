@@ -89,6 +89,10 @@ public class PCB implements Runnable {
                 + 
                 '}';
     }
+    
+    public boolean isFinished() { 
+        return remainingInstructions <= 0; 
+    }
 
     public String getProcessName() {
         return processName;
