@@ -9,6 +9,7 @@ package main.classes;
  * @author cehernandez
  */
 import helpers.CustomQueue;
+import java.util.concurrent.Semaphore;
 
 public class Simulator implements Runnable {
 
@@ -22,6 +23,9 @@ public class Simulator implements Runnable {
     private final CustomQueue<PCB> readySuspendedQueue; // Cola a mediano plazo
     private final CustomQueue<PCB> blockedSuspendedQueue; // Cola a mediano plazo
 
+    private final Semaphore newQueueSemaphore = new Semaphore(1);
+    private final Semaphore readyQueueSemaphore = new Semaphore(1);
+
     private volatile int globalCycle;  // Mi reloj Global para cada ciclo 
     private volatile int cycleDurationMs;  // Duración del ciclo de ejecución en mi simulación
 
@@ -30,7 +34,6 @@ public class Simulator implements Runnable {
     private boolean isRunning = false;
     private boolean isPaused = false;
 
-    
     public Simulator() {
 
         this.cycleDurationMs = 0;
@@ -58,29 +61,22 @@ public class Simulator implements Runnable {
                 while (this.isPaused) {
                     Thread.sleep(100);
                 }
-
-                // --- 1. PLANIFICADOR A LARGO PLAZO (Admitir nuevos procesos)
-                if (!newQueue.isEmpty()) {
-                    PCB processToAdmit = newQueue.dequeue();
-                    processToAdmit.setState(PCB.ProcessState.READY);
-                    readyQueue.enqueue(processToAdmit);
-
-                    System.out.println("(Cycle " + globalCycle + "): Admitted Process ID " + processToAdmit.getProcessID() + " to Ready Queue.");
-                    System.out.println("SIMULATOR: Proceso Listo -> " + readyQueue.toString());
-                }
-
-                // --- 2. PLANIFICADOR A CORTO PLAZO (Despachar proceso a la CPU) 
-                if (cpu.isAvailable() && !readyQueue.isEmpty()) {
-                    // Hacer las políticas de planificación para que elijan el siguiente.
-                    // Por ahora, asumimos FCFS.
-                    PCB processToDispatch = readyQueue.dequeue();
-
-                    cpu.loadProcess(processToDispatch);
-
-                    System.out.println("(Cycle " + globalCycle + "): Dispatched Process ID " + processToDispatch.getProcessID() + " to CPU.");
-                }
-
-                // Terminar toda la lógica de un ciclo (planificar, mover procesos, etc.)
+                
+                //Liberar CPU
+                checkRunningProcess();
+                
+                //Revisa si el evento por el que estaba esperando ya finalizó y vuelve a la cola listo.
+                checkBlockedQueue();
+                
+                // PLANIFICADOR A MEDIO PLAZO 
+                performSwapIn();
+                
+                // PLANIFICADOR A LARGO PLAZO 
+                longTermScheduler();
+               
+                // PLANIFICADOR A CORTO PLAZO 
+                dispatchProcessToCpu();
+                
                 this.globalCycle++;
                 System.out.println("Ciclo de Reloj Global: " + this.globalCycle);
                 Thread.sleep(this.cycleDurationMs);
@@ -103,7 +99,7 @@ public class Simulator implements Runnable {
     }
 
     public void togglePause() {
-        this.isPaused = !this.isPaused; 
+        this.isPaused = !this.isPaused;
 
         if (this.isPaused) {
             System.out.println("SIMULATOR: Paused.");
@@ -125,6 +121,112 @@ public class Simulator implements Runnable {
         newQueue.enqueue(newProcess);
         System.out.println("SIMULATOR: Proceso CREADO -> " + newProcess.toString());
 
+    }
+
+    //Planificador a largo plazo
+    private void longTermScheduler() {
+        try {
+            newQueueSemaphore.acquire();
+            if (!newQueue.isEmpty()) {
+                PCB candidate = newQueue.peek();
+                if ((usedMemory + candidate.getMemorySize()) <= total_RAN_Memory) {
+                    PCB admittedProcess = newQueue.dequeue();
+                    admittedProcess.setState(PCB.ProcessState.READY);
+                    usedMemory += admittedProcess.getMemorySize();
+
+                    readyQueueSemaphore.acquire();
+                    try {
+                        readyQueue.enqueue(admittedProcess);
+                        System.out.println("LTS: Proceso " + admittedProcess.getProcessID_short() + " admitido en memoria.");
+                    } finally {
+                        readyQueueSemaphore.release();
+                    }
+                } else {
+                    System.out.println("LTS: Memoria insuficiente para admitir " + candidate.getProcessID_short() + ". Se podría activar Swap-Out.");
+                    // performSwapOut(); // Llamada a la lógica de swapping
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            newQueueSemaphore.release();
+        }
+    }
+
+    //Planificador a corto plazo
+    private void dispatchProcessToCpu() throws InterruptedException {
+        readyQueueSemaphore.acquire();
+        try {
+            if (cpu.isAvailable() && !readyQueue.isEmpty()) {
+                //PCB processToDispatch = planningPolicies.selectNextProcess(readyQueue);
+                //if (processToDispatch != null) {
+                //    readyQueue.remove(processToDispatch); // Tu CustomQueue necesita un método remove
+                //    cpu.loadProcess(processToDispatch);
+                //    System.out.println("STS: Proceso " + processToDispatch.getProcessID_short() + " despachado a la CPU.");
+                //}
+            }
+        } finally {
+            readyQueueSemaphore.release();
+        }
+    }
+
+    private void checkRunningProcess() {
+        if (!cpu.isAvailable()) {
+            PCB runningProcess = cpu.getProcessActual();
+
+            if (runningProcess.getState() == PCB.ProcessState.FINISHED) {
+                PCB finishedProcess = cpu.unloadProcess();
+                finishedQueue.enqueue(finishedProcess);
+                usedMemory -= finishedProcess.getMemorySize(); // Libera memoria
+                System.out.println("SIM: Proceso " + finishedProcess.getProcessID_short() + " ha terminado.");
+            } else if (runningProcess.hasIoRequest()) {
+                PCB blockedProcess = cpu.unloadProcess();
+                blockedProcess.setState(PCB.ProcessState.BLOCKED);
+                blockedProcess.clearIoRequest();
+                blockedQueue.enqueue(blockedProcess);
+                System.out.println("SIM: Proceso " + blockedProcess.getProcessID_short() + " bloqueado por E/S.");
+            }
+        }
+    }
+
+    private void checkBlockedQueue() throws InterruptedException {
+        if (!blockedQueue.isEmpty()) {
+            CustomQueue<PCB> processesToUnblock = new CustomQueue<>();
+            for (PCB process : blockedQueue.iterable()) {
+                process.incrementCyclesBlocked();
+                if (process.getCyclesSpentBlocked() >= process.getSatisfyExceptionCycles()) {
+                    processesToUnblock.enqueue(process);
+                }
+            }
+            while (!processesToUnblock.isEmpty()) {
+                PCB processReady = processesToUnblock.dequeue();
+                blockedQueue.remove(processReady);
+                processReady.resetCyclesBlocked();
+                processReady.setState(PCB.ProcessState.READY);
+
+                readyQueueSemaphore.acquire();
+                try {
+                    readyQueue.enqueue(processReady);
+                } finally {
+                    readyQueueSemaphore.release();
+                }
+                System.out.println("SIM: Proceso " + processReady.getProcessID_short() + " ha completado E/S y vuelve a la Ready Queue.");
+            }
+        }
+    }
+
+    private void performSwapIn() {
+    }
+
+    private void performSwapOut() {
+    }
+
+    public int getUsedMemory() {
+        return usedMemory;
+    }
+
+    public void setUsedMemory(int usedMemory) {
+        this.usedMemory = usedMemory;
     }
 
 }

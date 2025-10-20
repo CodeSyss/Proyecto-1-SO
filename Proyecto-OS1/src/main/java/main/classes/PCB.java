@@ -39,6 +39,35 @@ public class PCB implements Runnable {
     private int memoryAddressRegister;
     private String processType;
 
+    private int memorySize; //Tamano para cada proceso.
+    private int BASE_MEMORY = 64;
+    private boolean ioRequestFlag = false;
+    private int cyclesSpentBlocked = 0;      // Cronómetro para el tiempo en estado de bloqueo cuando es i/o bound 
+
+    public int getCyclesForException() {
+        return cyclesForException;
+    }
+
+    public void setCyclesForException(int cyclesForException) {
+        this.cyclesForException = cyclesForException;
+    }
+
+    public int getSatisfyExceptionCycles() {
+        return satisfyExceptionCycles;
+    }
+
+    public void setSatisfyExceptionCycles(int satisfyExceptionCycles) {
+        this.satisfyExceptionCycles = satisfyExceptionCycles;
+    }
+
+    public int getCyclesSpentBlocked() {
+        return cyclesSpentBlocked;
+    }
+
+    public void setCyclesSpentBlocked(int cyclesSpentBlocked) {
+        this.cyclesSpentBlocked = cyclesSpentBlocked;
+    }
+
     public PCB(String processName, int totalInstructions) {
         this(processName, totalInstructions, "CPU-Bound", 0, 0);
     }
@@ -61,7 +90,22 @@ public class PCB implements Runnable {
         this.timeInCpu = 0;
         this.stackPointer = 0;
         this.memoryAddressRegister = 0;
+        this.memorySize = BASE_MEMORY + (this.totalInstructions / 4);
 
+        if ("I/O-Bound".equals(processType)) {
+            this.priority = 1; // Prioridad alta
+        } else {
+            this.priority = 5; // Prioridad media/baja
+        }
+
+    }
+
+    public int getMemorySize() {
+        return memorySize;
+    }
+
+    public void setMemorySize(int memorySize) {
+        this.memorySize = memorySize;
     }
 
     @Override
@@ -70,6 +114,22 @@ public class PCB implements Runnable {
 
             this.programCounter++;
             this.timeInCpu++;
+            this.remainingInstructions--;
+
+            if ("I/O-Bound".equals(this.processType)) {
+                if (this.programCounter % this.cyclesForException == 0) {
+                    this.ioRequestFlag = true;
+                }
+            }
+
+            try {
+                Thread.sleep(Long.MAX_VALUE);
+            } catch (InterruptedException e) {
+                if (this.ioRequestFlag) {
+                    break;
+                }
+                continue;
+            }
 
             System.out.println("    [CPU EXEC] -> PCB ID: " + this.getProcessID().toString().substring(0, 4)
                     + " executing instruction " + this.programCounter);
@@ -84,14 +144,32 @@ public class PCB implements Runnable {
                 + "ID=" + getProcessID().toString().substring(0, 8)
                 + ", Name='" + getProcessName() + '\''
                 + ", State='" + getState() + '\''
-                + 
-                ", Type='" + getProcessType() + '\''
-                + 
-                '}';
+                + ", Type='" + getProcessType() + '\''
+                + '}';
     }
-    
-    public boolean isFinished() { 
-        return remainingInstructions <= 0; 
+
+    public boolean hasIoRequest() {
+        return this.ioRequestFlag;
+    }
+
+    public void clearIoRequest() {
+        this.ioRequestFlag = false;
+    }
+
+    public void incrementCyclesBlocked() {
+        this.cyclesSpentBlocked++;
+    }
+
+    public void resetCyclesBlocked() {
+        this.cyclesSpentBlocked = 0;
+    }
+
+    public boolean isFinished() {
+        return remainingInstructions <= 0;
+    }
+
+    public String getProcessID_short() {
+        return processID.toString().substring(0, 8);
     }
 
     public String getProcessName() {

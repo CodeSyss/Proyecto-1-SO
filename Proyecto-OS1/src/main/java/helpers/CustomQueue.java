@@ -9,8 +9,11 @@ package helpers;
  * @author cehernandez
  */
 
-public class CustomQueue<T> {
+import java.util.Iterator;
+import java.util.NoSuchElementException;
  
+public class CustomQueue<T> {
+
     private Node<T> front; // El primer nodo de la cola (cabeza)
     private Node<T> rear;  // El último nodo de la cola (cola)
     private int size;      // El número de elementos en la cola
@@ -19,7 +22,7 @@ public class CustomQueue<T> {
      * Constructor para inicializar una cola vacía.
      */
     public CustomQueue() {
-        this.front = null; 
+        this.front = null;
         this.rear = null;
         this.size = 0;
     }
@@ -31,7 +34,7 @@ public class CustomQueue<T> {
      */
     public void enqueue(T data) {           //ENCOLAR
         Node<T> newNode = new Node<>(data);
-        
+
         if (isEmpty()) {
             front = newNode;
             rear = newNode;
@@ -45,16 +48,17 @@ public class CustomQueue<T> {
     /**
      * Elimina y devuelve el elemento del frente (front) de la cola.
      *
-     * @return El elemento que estaba al frente de la cola, o null si la cola está vacía.
+     * @return El elemento que estaba al frente de la cola, o null si la cola
+     * está vacía.
      */
     public T dequeue() {            //DESENCOLAR
         if (isEmpty()) {
             return null;
         }
-        
+
         T data = front.data;
         front = front.next;
-        
+
         if (front == null) {
             rear = null;
         }
@@ -94,6 +98,7 @@ public class CustomQueue<T> {
 
     /**
      * Genera una representación en String de la cola.
+     *
      * @return Un string con todos los elementos de la cola.
      */
     @Override
@@ -108,5 +113,61 @@ public class CustomQueue<T> {
             current = current.next;
         }
         return sb.toString();
-    }  
+    }
+
+    /**
+     * Devuelve un objeto Iterable que puede ser usado en un bucle for-each.
+     * Esto permite recorrer la cola sin exponer su estructura interna.
+     *
+     * @return Un objeto Iterable para esta cola.
+     */
+    public Iterable<T> iterable() {
+        return new Iterable<T>() {
+            @Override
+            public Iterator<T> iterator() {
+                return new Iterator<T>() {
+                    private Node<T> current = front;
+
+                    @Override
+                    public boolean hasNext() {
+                        return current != null;
+                    }
+
+                    @Override
+                    public T next() {
+                        if (!hasNext()) {
+                            throw new NoSuchElementException();
+                        }
+                        T data = current.data;
+                        current = current.next;
+                        return data;
+                    }
+                };
+            }
+        };
+    }
+
+    public boolean remove(T dataToRemove) {
+        if (isEmpty() || dataToRemove == null) {
+            return false;
+        }
+        if (front.data.equals(dataToRemove)) {
+            dequeue();
+            return true;
+        }
+        Node<T> current = front;
+        while (current.next != null) {
+            if (current.next.data.equals(dataToRemove)) {
+                Node<T> nodeToRemove = current.next;
+                current.next = nodeToRemove.next;
+                if (nodeToRemove == rear) {
+                    rear = current;
+                }
+                size--;
+                return true;
+            }
+            current = current.next;
+        }
+        return false;
+    }
 }
