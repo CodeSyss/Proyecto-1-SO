@@ -30,6 +30,7 @@ public class Simulator implements Runnable {
     private boolean isRunning = false;
     private boolean isPaused = false;
 
+    
     public Simulator() {
 
         this.cycleDurationMs = 0;
