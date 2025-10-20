@@ -441,15 +441,49 @@ public class JFrame_principal extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
+        if (this.simulator != null) {
+            this.simulator.togglePause();
+
+            if (jButton2.getText().equals("Pausar")) {
+                jButton2.setText("Reanudar");
+                jButton2.setBackground(new java.awt.Color(0, 153, 255));
+            } else {
+                jButton2.setText("Pausar");
+                jButton2.setBackground(new java.awt.Color(255, 153, 0));
+            }
+        }
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+        try {
+            String durationText = DuracionCiclo.getText();
+            int durationMs = Integer.parseInt(durationText);
+
+            if (durationMs <= 0) {
+                JOptionPane.showMessageDialog(this, "La duración del ciclo debe ser un número positivo.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            this.simulator.setCycleDuration(durationMs);
+
+            Thread simulatorThread = new Thread(this.simulator);
+            simulatorThread.start();
+
+            jButton1.setEnabled(false);
+            CargarConfig.setEnabled(false);
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Por favor, introduce un número válido para la duración del ciclo.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
+
+        if (this.simulator != null) {
+            this.simulator.stopSimulation();
+        }
+        jButton1.setEnabled(true);
+        CargarConfig.setEnabled(true);
+
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void nombreProcesoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nombreProcesoActionPerformed
@@ -551,7 +585,7 @@ public class JFrame_principal extends javax.swing.JFrame {
     }//GEN-LAST:event_CargarConfigActionPerformed
 
     private void DuracionCicloActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DuracionCicloActionPerformed
-        // TODO add your handling code here:
+
     }//GEN-LAST:event_DuracionCicloActionPerformed
 
     private void ComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_ComboBoxItemStateChanged
@@ -586,9 +620,6 @@ public class JFrame_principal extends javax.swing.JFrame {
 
         Simulator mainSimulator = new Simulator();
 
-        Thread simulatorThread = new Thread(mainSimulator);
-        simulatorThread.start();
-
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -602,7 +633,9 @@ public class JFrame_principal extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new JFrame_principal(mainSimulator).setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> {
+            new JFrame_principal(mainSimulator).setVisible(true);
+        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

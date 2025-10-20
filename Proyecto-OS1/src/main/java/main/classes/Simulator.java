@@ -25,9 +25,14 @@ public class Simulator implements Runnable {
     private volatile int globalCycle;  // Mi reloj Global para cada ciclo 
     private volatile int cycleDurationMs;  // Duración del ciclo de ejecución en mi simulación
 
+    private final int total_RAN_Memory = 2024;
+    private int usedMemory;
+    private boolean isRunning = false;
+    private boolean isPaused = false;
+
     public Simulator() {
 
-        this.cycleDurationMs = 1000;
+        this.cycleDurationMs = 0;
         this.globalCycle = 0;
 
         this.newQueue = new CustomQueue<>();
@@ -44,9 +49,14 @@ public class Simulator implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
+        this.isRunning = true;
+        while (this.isRunning) {
 
             try {
+
+                while (this.isPaused) {
+                    Thread.sleep(100);
+                }
 
                 // --- 1. PLANIFICADOR A LARGO PLAZO (Admitir nuevos procesos)
                 if (!newQueue.isEmpty()) {
@@ -55,7 +65,7 @@ public class Simulator implements Runnable {
                     readyQueue.enqueue(processToAdmit);
 
                     System.out.println("(Cycle " + globalCycle + "): Admitted Process ID " + processToAdmit.getProcessID() + " to Ready Queue.");
-                    System.out.println("SIMULATOR: Proceso Listo -> " + readyQueue.toString()); 
+                    System.out.println("SIMULATOR: Proceso Listo -> " + readyQueue.toString());
                 }
 
                 // --- 2. PLANIFICADOR A CORTO PLAZO (Despachar proceso a la CPU) 
@@ -83,6 +93,22 @@ public class Simulator implements Runnable {
     public void setCycleDuration(int newDurationMs) {
         // Se puede agregar validación por si es un número negativo
         this.cycleDurationMs = newDurationMs;
+    }
+
+    public void stopSimulation() {
+        this.isRunning = false;
+        this.isPaused = false;
+        this.globalCycle = 0;
+    }
+
+    public void togglePause() {
+        this.isPaused = !this.isPaused; 
+
+        if (this.isPaused) {
+            System.out.println("SIMULATOR: Paused.");
+        } else {
+            System.out.println("SIMULATOR: Resumed.");
+        }
     }
 
     public void createProcessFromUI(String name, int instructions, String type, int cyclesForException, int satisfyCycles) {
