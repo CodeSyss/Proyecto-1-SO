@@ -44,6 +44,14 @@ public class PCB implements Runnable {
     private boolean ioRequestFlag = false;
     private int cyclesSpentBlocked = 0;      // Cronómetro para el tiempo en estado de bloqueo cuando es i/o bound 
 
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
     public int getCyclesForException() {
         return cyclesForException;
     }

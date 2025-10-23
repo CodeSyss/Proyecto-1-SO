@@ -61,22 +61,22 @@ public class Simulator implements Runnable {
                 while (this.isPaused) {
                     Thread.sleep(100);
                 }
-                
+
                 //Liberar CPU
                 checkRunningProcess();
-                
+
                 //Revisa si el evento por el que estaba esperando ya finalizó y vuelve a la cola listo.
                 checkBlockedQueue();
-                
+
                 // PLANIFICADOR A MEDIO PLAZO 
                 performSwapIn();
-                
+
                 // PLANIFICADOR A LARGO PLAZO 
                 longTermScheduler();
-               
+
                 // PLANIFICADOR A CORTO PLAZO 
                 dispatchProcessToCpu();
-                
+
                 this.globalCycle++;
                 System.out.println("Ciclo de Reloj Global: " + this.globalCycle);
                 Thread.sleep(this.cycleDurationMs);
@@ -143,7 +143,7 @@ public class Simulator implements Runnable {
                     }
                 } else {
                     System.out.println("LTS: Memoria insuficiente para admitir " + candidate.getProcessID_short() + ". Se podría activar Swap-Out.");
-                    // performSwapOut(); // Llamada a la lógica de swapping
+                    performSwapOut(); // Llamada a la lógica de swapping
                 }
             }
         } catch (InterruptedException e) {
@@ -215,10 +215,169 @@ public class Simulator implements Runnable {
         }
     }
 
-    private void performSwapIn() {
+    /**
+     * Intenta traer un proceso suspendido de vuelta a la memoria principal
+     * (SWAP-IN). POLÍTICA ELEGIDA: Traer de vuelta al de mayor prioridad de la
+     * readySuspendedQueue. Se ejecuta en cada ciclo si hay memoria disponible.
+     */
+    private void performSwapIn() throws InterruptedException {
+        if (usedMemory < total_RAN_Memory) {
+
+            PCB candidate = findHighestPriorityProcess(readySuspendedQueue);
+            boolean fromReadySuspended = true;
+
+            if (candidate == null && !blockedSuspendedQueue.isEmpty()) {
+                candidate = findHighestPriorityProcess(blockedSuspendedQueue);
+                fromReadySuspended = false;
+            }
+
+            if (candidate != null && (usedMemory + candidate.getMemorySize()) <= total_RAN_Memory) {
+
+                if (fromReadySuspended) {
+                    readySuspendedQueue.remove(candidate);
+                    candidate.setState(PCB.ProcessState.READY); 
+                } else {
+                    blockedSuspendedQueue.remove(candidate);
+                    candidate.setState(PCB.ProcessState.BLOCKED); 
+                }
+
+                usedMemory += candidate.getMemorySize();
+
+                if (fromReadySuspended) {
+                    readyQueueSemaphore.acquire();
+                    try {
+                        readyQueue.enqueue(candidate);
+                    } finally {
+                        readyQueueSemaphore.release();
+                    }
+                } else {
+                    blockedQueue.enqueue(candidate);
+                }
+
+                System.out.println("SWAP-IN: Proceso " + candidate.getProcessID_short() + " reingresado a memoria. Estado: " + candidate.getState());
+            }
+        }
     }
 
+    /**
+     * Intenta liberar memoria suspendiendo un proceso (SWAP-OUT). POLÍTICA
+     * ELEGIDA: Suspender el proceso bloqueado de menor prioridad. Si no hay,
+     * suspende el proceso listo de menor prioridad. Se activa típicamente
+     * cuando el LTS no puede admitir un proceso nuevo.
+     */
     private void performSwapOut() {
+        PCB victim = null;
+        boolean wasBlocked = false;
+
+        if (!blockedQueue.isEmpty()) {
+            victim = findLowestPriorityProcess(blockedQueue);
+            wasBlocked = true;
+        }
+        else if (!readyQueue.isEmpty()) {
+            victim = findLowestPriorityProcess(readyQueue);
+            if (victim == cpu.getProcessActual()) {
+                victim = findSecondLowestPriorityProcess(readyQueue);
+            }
+        }
+
+        if (victim != null) {
+            if (wasBlocked) {
+                blockedQueue.remove(victim);
+                victim.setState(PCB.ProcessState.BLOCKED_SUSPENDED);
+                blockedSuspendedQueue.enqueue(victim);
+            } else {
+                try {
+                    readyQueueSemaphore.acquire();
+                    readyQueue.remove(victim);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    readyQueueSemaphore.release();
+                    return;
+                } finally {
+                    readyQueueSemaphore.release();
+                }
+                victim.setState(PCB.ProcessState.READY_SUSPENDED);
+                readySuspendedQueue.enqueue(victim);
+            }
+
+            usedMemory -= victim.getMemorySize();
+            System.out.println("SWAP-OUT: Proceso " + victim.getProcessID_short() + " suspendido para liberar " + victim.getMemorySize() + " de memoria.");
+        } else {
+            System.out.println("SWAP-OUT: No se encontraron víctimas adecuadas para suspender.");
+        }
+    }
+
+    /**
+     * Encuentra el proceso con la prioridad más BAJA (número más ALTO) en una
+     * cola dada.
+     *
+     * @param queue La cola en la que buscar (readyQueue o blockedQueue).
+     * @return El proceso con la prioridad más baja, o null si la cola está vacía.
+     */
+    private PCB findLowestPriorityProcess(CustomQueue<PCB> queue) {
+        if (queue.isEmpty()) {
+            return null;
+        }
+
+        PCB victim = queue.peek();
+        for (PCB process : queue.iterable()) {
+            if (process.getPriority() > victim.getPriority()) { 
+                victim = process;
+            }
+        }
+        return victim;
+    }
+
+    /**
+     * Encuentra el proceso con la prioridad más ALTA (número más BAJO) en una
+     * cola dada.
+     *
+     * @param queue La cola en la que buscar (readySuspendedQueue o
+     * blockedSuspendedQueue).
+     * @return El proceso con la prioridad más alta, o null si la cola está vacía.
+     */
+    private PCB findHighestPriorityProcess(CustomQueue<PCB> queue) {
+        if (queue.isEmpty()) {
+            return null;
+        }
+
+        PCB candidate = queue.peek();
+        for (PCB process : queue.iterable()) {
+            if (process.getPriority() < candidate.getPriority()) { // Menor número = Mayor prioridad
+                candidate = process;
+            }
+        }
+        return candidate;
+    }
+
+    /**
+     * Método de ayuda para encontrar el segundo proceso con la prioridad más
+     * baja. Útil para el caso de Swap-Out donde el de menor prioridad es el que
+     * está en CPU.
+     *
+     * @param queue La cola readyQueue.
+     * @return El segundo Proceso con la prioridad más baja, o null si no hay
+     * suficientes procesos.
+     */
+    private PCB findSecondLowestPriorityProcess(CustomQueue<PCB> queue) {
+        if (queue.size() < 2) {
+            return null; 
+        }
+
+        PCB lowest = queue.peek();
+        PCB secondLowest = null;
+
+        for (PCB process : queue.iterable()) {
+            if (process.getPriority() > lowest.getPriority()) {
+                secondLowest = lowest; 
+                lowest = process;          
+            } else if (secondLowest == null || process.getPriority() > secondLowest.getPriority()) {
+                if (process != lowest) {
+                    secondLowest = process;
+                }
+            }
+        }
+        return secondLowest;
     }
 
     public int getUsedMemory() {
