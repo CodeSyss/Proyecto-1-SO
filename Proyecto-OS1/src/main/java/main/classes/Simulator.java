@@ -87,6 +87,12 @@ public class Simulator implements Runnable {
         }
     }
 
+    public void setPlanningPolicy(String policyCode) {
+        if (this.planningPolicies != null) {
+            this.planningPolicies.setPolicy(policyCode);
+        }
+    }
+
     public void setCycleDuration(int newDurationMs) {
         // Se puede agregar validación por si es un número negativo
         this.cycleDurationMs = newDurationMs;
@@ -160,7 +166,7 @@ public class Simulator implements Runnable {
             if (cpu.isAvailable() && !readyQueue.isEmpty()) {
                 //PCB processToDispatch = planningPolicies.selectNextProcess(readyQueue);
                 //if (processToDispatch != null) {
-                //    readyQueue.remove(processToDispatch); // Tu CustomQueue necesita un método remove
+                //    readyQueue.remove(processToDispatch); 
                 //    cpu.loadProcess(processToDispatch);
                 //    System.out.println("STS: Proceso " + processToDispatch.getProcessID_short() + " despachado a la CPU.");
                 //}
@@ -235,10 +241,10 @@ public class Simulator implements Runnable {
 
                 if (fromReadySuspended) {
                     readySuspendedQueue.remove(candidate);
-                    candidate.setState(PCB.ProcessState.READY); 
+                    candidate.setState(PCB.ProcessState.READY);
                 } else {
                     blockedSuspendedQueue.remove(candidate);
-                    candidate.setState(PCB.ProcessState.BLOCKED); 
+                    candidate.setState(PCB.ProcessState.BLOCKED);
                 }
 
                 usedMemory += candidate.getMemorySize();
@@ -272,8 +278,7 @@ public class Simulator implements Runnable {
         if (!blockedQueue.isEmpty()) {
             victim = findLowestPriorityProcess(blockedQueue);
             wasBlocked = true;
-        }
-        else if (!readyQueue.isEmpty()) {
+        } else if (!readyQueue.isEmpty()) {
             victim = findLowestPriorityProcess(readyQueue);
             if (victim == cpu.getProcessActual()) {
                 victim = findSecondLowestPriorityProcess(readyQueue);
@@ -312,7 +317,8 @@ public class Simulator implements Runnable {
      * cola dada.
      *
      * @param queue La cola en la que buscar (readyQueue o blockedQueue).
-     * @return El proceso con la prioridad más baja, o null si la cola está vacía.
+     * @return El proceso con la prioridad más baja, o null si la cola está
+     * vacía.
      */
     private PCB findLowestPriorityProcess(CustomQueue<PCB> queue) {
         if (queue.isEmpty()) {
@@ -321,7 +327,7 @@ public class Simulator implements Runnable {
 
         PCB victim = queue.peek();
         for (PCB process : queue.iterable()) {
-            if (process.getPriority() > victim.getPriority()) { 
+            if (process.getPriority() > victim.getPriority()) {
                 victim = process;
             }
         }
@@ -334,7 +340,8 @@ public class Simulator implements Runnable {
      *
      * @param queue La cola en la que buscar (readySuspendedQueue o
      * blockedSuspendedQueue).
-     * @return El proceso con la prioridad más alta, o null si la cola está vacía.
+     * @return El proceso con la prioridad más alta, o null si la cola está
+     * vacía.
      */
     private PCB findHighestPriorityProcess(CustomQueue<PCB> queue) {
         if (queue.isEmpty()) {
@@ -361,7 +368,7 @@ public class Simulator implements Runnable {
      */
     private PCB findSecondLowestPriorityProcess(CustomQueue<PCB> queue) {
         if (queue.size() < 2) {
-            return null; 
+            return null;
         }
 
         PCB lowest = queue.peek();
@@ -369,8 +376,8 @@ public class Simulator implements Runnable {
 
         for (PCB process : queue.iterable()) {
             if (process.getPriority() > lowest.getPriority()) {
-                secondLowest = lowest; 
-                lowest = process;          
+                secondLowest = lowest;
+                lowest = process;
             } else if (secondLowest == null || process.getPriority() > secondLowest.getPriority()) {
                 if (process != lowest) {
                     secondLowest = process;

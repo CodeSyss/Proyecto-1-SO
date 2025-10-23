@@ -35,6 +35,11 @@ public class JFrame_principal extends javax.swing.JFrame {
         tipoFuente = new Fuentes();
         jLabel1.setFont(tipoFuente.fuente(tipoFuente.Inter, 0, 22));
         setSize(1530, 800);
+        jComboBox2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBox2ActionPerformed(evt);
+            }
+        });
         setLocationRelativeTo(null);
         CicloExcepcion.setVisible(false);
         CicloSatisfacer.setVisible(false);
@@ -402,7 +407,7 @@ public class JFrame_principal extends javax.swing.JFrame {
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 285, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 314, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(47, 47, 47)
+                .addGap(53, 53, 53)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -587,7 +592,38 @@ public class JFrame_principal extends javax.swing.JFrame {
     private void DuracionCicloActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DuracionCicloActionPerformed
 
     }//GEN-LAST:event_DuracionCicloActionPerformed
+    private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {
+        String selectedPolicyFullName = (String) jComboBox2.getSelectedItem();
 
+        String policyCode;
+        switch (selectedPolicyFullName) {
+            case "SJF (Shortest Job First)":
+                policyCode = "SJF";
+                break;
+            case "Round Robin":
+                policyCode = "RR";
+                break;
+            case "FIFO (First In, Firts Out)": 
+                policyCode = "FCFS";
+                break;
+            case "SRTF (Short Remaining Time First)":
+                policyCode = "SRT";
+                break;
+            case "Multilevel Queue": 
+                policyCode = "MLQ";
+                break;
+            case "Multilevel Feedback Queue":
+                policyCode = "MLFQ"; 
+                break;
+            default:
+                policyCode = "FCFS"; // Política por defecto si algo falla
+        }
+
+        if (this.simulator != null) {
+            this.simulator.setPlanningPolicy(policyCode);
+            System.out.println("GUI: Política de planificación -> " + policyCode);
+        }
+    }
     private void ComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_ComboBoxItemStateChanged
         String tipoSeleccionado = (String) ComboBox.getSelectedItem();
 
