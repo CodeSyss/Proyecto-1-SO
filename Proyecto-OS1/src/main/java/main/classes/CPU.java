@@ -62,6 +62,9 @@ public class CPU {
     public PCB getProcessActual() {
         return processActual;
     }
+    public Thread getThreadProcessActual() {
+        return threadProcessActual;
+    }
 
 }
 

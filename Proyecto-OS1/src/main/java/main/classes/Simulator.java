@@ -8,13 +8,16 @@ package main.classes;
  *
  * @author cehernandez
  */
+import gui.classes.JFrame_principal;
 import helpers.CustomQueue;
 import java.util.concurrent.Semaphore;
+import javax.swing.SwingUtilities;
 
 public class Simulator implements Runnable {
 
     private final CPU cpu;
     private final PlanningPolicies planningPolicies;
+     private JFrame_principal gui; 
 
     private final CustomQueue<PCB> newQueue; // Cola a largo plazo
     private final CustomQueue<PCB> readyQueue; // Cola a corto plazo
@@ -47,7 +50,7 @@ public class Simulator implements Runnable {
         this.blockedSuspendedQueue = new CustomQueue<>();
 
         this.cpu = new CPU();
-        this.planningPolicies = new PlanningPolicies(this.readyQueue);
+        this.planningPolicies = new PlanningPolicies();
 
     }
 
@@ -76,9 +79,20 @@ public class Simulator implements Runnable {
 
                 // PLANIFICADOR A CORTO PLAZO 
                 dispatchProcessToCpu();
+                
+                // 6. ACTUALIZAR GUI (Enviar estado actual a la interfaz)
+                updateGUI();
+
 
                 this.globalCycle++;
                 System.out.println("Ciclo de Reloj Global: " + this.globalCycle);
+                // DESPUÉS de toda la lógica, interrumpe al proceso en CPU (si hay uno) para que haga su próximo ciclo
+                if (!cpu.isAvailable()) { // Verifica si la CPU tiene un proceso
+                    Thread currentThread = cpu.getThreadProcessActual(); // Obtiene el HILO
+                if (currentThread != null) { // Verifica que el hilo exista
+            currentThread.interrupt(); // ¡Llama a interrupt() en el HILO!
+        }
+    }
                 Thread.sleep(this.cycleDurationMs);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -118,14 +132,16 @@ public class Simulator implements Runnable {
         PCB newProcess;
 
         if ("I/O Bound".equals(type)) {
-            System.out.println("SIMULATOR: Creando un proceso I/O Bound.");
+            System.out.println("SIMULATOR: Creando I/O Bound con Name=" + name + ", Instr=" + instructions + ", ExcCycle=" + cyclesForException + ", SatCycle=" + satisfyCycles);
             newProcess = new PCB(name, instructions, cyclesForException, satisfyCycles);
         } else {
-            System.out.println("SIMULATOR: Creando un proceso CPU Bound.");
+            System.out.println("SIMULATOR: Creando CPU Bound con Name=" + name + ", Instr=" + instructions);
             newProcess = new PCB(name, instructions);
         }
         newQueue.enqueue(newProcess);
-        System.out.println("SIMULATOR: Proceso CREADO -> " + newProcess.toString());
+        System.out.println("DEBUG PCB CREATED: ID=" + newProcess.getProcessID_short() 
+                     + ", Type=" + newProcess.getProcessType() 
+                     + ", CyclesForExc=" + newProcess.getCyclesForException()); //
 
     }
 
@@ -158,34 +174,48 @@ public class Simulator implements Runnable {
             newQueueSemaphore.release();
         }
     }
-
-    //Planificador a corto plazo
     private void dispatchProcessToCpu() throws InterruptedException {
+
         readyQueueSemaphore.acquire();
+
         try {
+
             if (cpu.isAvailable() && !readyQueue.isEmpty()) {
-                //PCB processToDispatch = planningPolicies.selectNextProcess(readyQueue);
-                //if (processToDispatch != null) {
-                //    readyQueue.remove(processToDispatch); 
-                //    cpu.loadProcess(processToDispatch);
-                //    System.out.println("STS: Proceso " + processToDispatch.getProcessID_short() + " despachado a la CPU.");
-                //}
+
+                PCB processToDispatch = planningPolicies.selectNextProcess(readyQueue);
+
+                if (processToDispatch != null) {
+
+                   readyQueue.remove(processToDispatch); 
+
+                   cpu.loadProcess(processToDispatch);
+
+                   System.out.println("STS: Proceso " + processToDispatch.getProcessID_short() + " despachado a la CPU.");
+
+                }
+
             }
+
         } finally {
+
             readyQueueSemaphore.release();
+
         }
+
     }
+
 
     private void checkRunningProcess() {
         if (!cpu.isAvailable()) {
             PCB runningProcess = cpu.getProcessActual();
-
+            System.out.println("SIM: Checking running process " + runningProcess.getProcessID_short() + ". State=" + runningProcess.getState() + ", IO Flag=" + runningProcess.hasIoRequest());
             if (runningProcess.getState() == PCB.ProcessState.FINISHED) {
                 PCB finishedProcess = cpu.unloadProcess();
                 finishedQueue.enqueue(finishedProcess);
                 usedMemory -= finishedProcess.getMemorySize(); // Libera memoria
                 System.out.println("SIM: Proceso " + finishedProcess.getProcessID_short() + " ha terminado.");
             } else if (runningProcess.hasIoRequest()) {
+                System.out.println("DEBUG SIM: IO Request DETECTED for " + runningProcess.getProcessID_short() + "!");
                 PCB blockedProcess = cpu.unloadProcess();
                 blockedProcess.setState(PCB.ProcessState.BLOCKED);
                 blockedProcess.clearIoRequest();
@@ -394,5 +424,40 @@ public class Simulator implements Runnable {
     public void setUsedMemory(int usedMemory) {
         this.usedMemory = usedMemory;
     }
+    
+        // --- MÉTODO PARA ACTUALIZAR LA GUI ---
+    private void updateGUI() {
+        if (gui != null) {
+            final CustomQueue<PCB> readySnapshot = readyQueue; 
+            final CustomQueue<PCB> blockedSnapshot = blockedQueue;
+            final CustomQueue<PCB> finishedSnapshot = finishedQueue;
+            final CustomQueue<PCB> readySuspendedSnapshot = readySuspendedQueue;
+            final CustomQueue<PCB> blockedSuspendedSnapshot = blockedSuspendedQueue;
+            
+            final PCB runningSnapshot = cpu.getProcessActual();
+            final CPU.Mode modeSnapshot = cpu.getCurrentMode();
+            final int cycleSnapshot = this.globalCycle;
+            final int memSnapshot = this.usedMemory;
+            final int totalMemSnapshot = total_RAN_Memory;
 
+            SwingUtilities.invokeLater(() -> {
+                gui.updateReadyQueue(readySnapshot);
+                gui.updateBlockedQueue(blockedSnapshot);
+                gui.updateFinishedQueue(finishedSnapshot);
+                gui.updateReadySuspendedQueue(readySuspendedSnapshot);
+                gui.updateBlockedSuspendedQueue(blockedSuspendedSnapshot);
+                
+                // gui.updateCpuPanel(runningSnapshot, modeSnapshot); 
+                // gui.updateGlobalCycle(cycleSnapshot);
+                // gui.updateMemoryUsage(memSnapshot, totalMemSnapshot);
+            });
+        }
+    }
+    
+    // Método para que el 'main' pueda conectarlos
+    public void setGui(JFrame_principal gui) {
+        this.gui = gui;
+    }
+    
 }
+

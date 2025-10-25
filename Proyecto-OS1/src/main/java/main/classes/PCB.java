@@ -118,32 +118,38 @@ public class PCB implements Runnable {
 
     @Override
     public void run() {
-        while (this.programCounter < this.totalInstructions) {
+        while (this.programCounter < this.totalInstructions && !Thread.currentThread().isInterrupted()) {
 
             this.programCounter++;
             this.timeInCpu++;
             this.remainingInstructions--;
 
+            System.out.println("    [CPU EXEC] -> PCB ID: " + this.getProcessID_short() 
+                         + " executing instruction " + this.programCounter + "/" + this.totalInstructions);
+            
+            
             if ("I/O-Bound".equals(this.processType)) {
-                if (this.programCounter % this.cyclesForException == 0) {
+                System.out.println("        DEBUG I/O Check: PC=" + this.programCounter 
+                             + ", CyclesForExc=" + this.cyclesForException 
+                             + ", Remainder=" + (this.programCounter % this.cyclesForException));
+                if ("I/O-Bound".equals(this.processType) && this.cyclesForException > 0 && (this.programCounter % this.cyclesForException == 0)) {
                     this.ioRequestFlag = true;
+                    System.out.println("    [CPU EXEC] -> PCB ID: " + this.getProcessID_short() + " *** requests I/O ***");
                 }
             }
 
             try {
                 Thread.sleep(Long.MAX_VALUE);
             } catch (InterruptedException e) {
-                if (this.ioRequestFlag) {
-                    break;
-                }
-                continue;
             }
 
             System.out.println("    [CPU EXEC] -> PCB ID: " + this.getProcessID().toString().substring(0, 4)
                     + " executing instruction " + this.programCounter);
         }
-        this.setState(ProcessState.FINISHED);
-        System.out.println("    [CPU EXEC] -> PCB ID: " + this.getProcessID().toString().substring(0, 4) + " FINISHED!");
+        if (this.programCounter >= this.totalInstructions && !Thread.currentThread().isInterrupted()) {
+            this.setState(ProcessState.FINISHED);
+            System.out.println("    [CPU EXEC] -> PCB ID: " + this.getProcessID_short() + " FINISHED!");
+        }
     }
 
     @Override
