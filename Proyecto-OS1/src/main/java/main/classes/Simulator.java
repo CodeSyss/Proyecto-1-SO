@@ -446,6 +446,7 @@ public class Simulator implements Runnable {
                 gui.updateFinishedQueue(finishedSnapshot);
                 gui.updateReadySuspendedQueue(readySuspendedSnapshot);
                 gui.updateBlockedSuspendedQueue(blockedSuspendedSnapshot);
+                gui.updateCpuPanel(runningSnapshot, modeSnapshot);
                 
                 // gui.updateCpuPanel(runningSnapshot, modeSnapshot); 
                 // gui.updateGlobalCycle(cycleSnapshot);

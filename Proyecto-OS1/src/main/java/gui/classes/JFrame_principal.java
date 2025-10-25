@@ -20,6 +20,8 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
 import java.awt.BorderLayout; // Para añadir JScrollPane a los JPanels
+import java.awt.Color;
+import main.classes.CPU;
 
 /**
  *
@@ -34,8 +36,8 @@ public class JFrame_principal extends javax.swing.JFrame {
      */
     Fuentes tipoFuente;
     private Simulator simulator;
-    
-        // --- MODELOS Y LISTAS PARA CADA COLA VISUAL ---
+
+    // --- MODELOS Y LISTAS PARA CADA COLA VISUAL ---
     // Modelos: 
     private DefaultListModel<PCB> readyListModel;
     private DefaultListModel<PCB> blockedListModel;
@@ -57,7 +59,7 @@ public class JFrame_principal extends javax.swing.JFrame {
 
         initComponents();
         tipoFuente = new Fuentes();
-        
+
         // --- INICIALIZACIÓN DE COMPONENTES VISUALES PARA LAS COLAS ---
         initializeQueueLists();
         jLabel1.setFont(tipoFuente.fuente(tipoFuente.Inter, 0, 22));
@@ -115,6 +117,20 @@ public class JFrame_principal extends javax.swing.JFrame {
         jLabel13 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
+        cpuInfoPanel = new javax.swing.JPanel();
+        jLabel14 = new javax.swing.JLabel();
+        jLabel15 = new javax.swing.JLabel();
+        jLabel16 = new javax.swing.JLabel();
+        jLabel17 = new javax.swing.JLabel();
+        jLabel18 = new javax.swing.JLabel();
+        jLabel19 = new javax.swing.JLabel();
+        jLabel20 = new javax.swing.JLabel();
+        cpuPcLabel = new javax.swing.JLabel();
+        cpuProcessStateLabel = new javax.swing.JLabel();
+        cpuProcessNameLabel = new javax.swing.JLabel();
+        cpuProcessIdLabel = new javax.swing.JLabel();
+        cpuMarLabel = new javax.swing.JLabel();
+        cpuModeLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -123,7 +139,7 @@ public class JFrame_principal extends javax.swing.JFrame {
         jLabel2.setText("Interfaz de visualizacion para sistemas monoprocesador");
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(null));
 
         jLabel3.setText("Configuración");
 
@@ -215,7 +231,7 @@ public class JFrame_principal extends javax.swing.JFrame {
         );
 
         jPanel2.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(null));
 
         jLabel5.setText("Crear Nuevo Proceso");
 
@@ -312,7 +328,7 @@ public class JFrame_principal extends javax.swing.JFrame {
         );
 
         jPanel3.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel3.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel3.setBorder(javax.swing.BorderFactory.createLineBorder(null));
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -326,7 +342,7 @@ public class JFrame_principal extends javax.swing.JFrame {
         );
 
         jPanel4.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel4.setBorder(javax.swing.BorderFactory.createLineBorder(null));
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -340,7 +356,7 @@ public class JFrame_principal extends javax.swing.JFrame {
         );
 
         jPanel5.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel5.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel5.setBorder(javax.swing.BorderFactory.createLineBorder(null));
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -354,7 +370,7 @@ public class JFrame_principal extends javax.swing.JFrame {
         );
 
         jPanel6.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel6.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel6.setBorder(javax.swing.BorderFactory.createLineBorder(null));
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -374,6 +390,103 @@ public class JFrame_principal extends javax.swing.JFrame {
         jLabel11.setText("Listos/Suspendidos");
 
         jLabel12.setText("Bloqueados/Suspendidos");
+
+        jLabel14.setText("CPU");
+
+        jLabel15.setText("ID del Proceso:");
+
+        jLabel16.setText("Nombre del Proceso:");
+
+        jLabel17.setText("Program Counter (PC):");
+
+        jLabel18.setText("Memory Address Register (MAR):");
+
+        jLabel19.setText("Modo de la CPU:");
+
+        jLabel20.setText("Estado del Proceso:");
+
+        cpuPcLabel.setText("...");
+
+        cpuProcessStateLabel.setText("...");
+
+        cpuProcessNameLabel.setText("...");
+
+        cpuProcessIdLabel.setText("...");
+
+        cpuMarLabel.setText("...");
+
+        cpuModeLabel.setText("...");
+
+        javax.swing.GroupLayout cpuInfoPanelLayout = new javax.swing.GroupLayout(cpuInfoPanel);
+        cpuInfoPanel.setLayout(cpuInfoPanelLayout);
+        cpuInfoPanelLayout.setHorizontalGroup(
+            cpuInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(cpuInfoPanelLayout.createSequentialGroup()
+                .addGap(33, 33, 33)
+                .addGroup(cpuInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(cpuInfoPanelLayout.createSequentialGroup()
+                        .addComponent(jLabel15)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cpuProcessIdLabel)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(cpuInfoPanelLayout.createSequentialGroup()
+                        .addGroup(cpuInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(cpuInfoPanelLayout.createSequentialGroup()
+                                .addComponent(jLabel19)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(cpuModeLabel))
+                            .addGroup(cpuInfoPanelLayout.createSequentialGroup()
+                                .addComponent(jLabel16)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(cpuProcessNameLabel))
+                            .addGroup(cpuInfoPanelLayout.createSequentialGroup()
+                                .addComponent(jLabel18)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(cpuMarLabel))
+                            .addGroup(cpuInfoPanelLayout.createSequentialGroup()
+                                .addComponent(jLabel17)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(cpuPcLabel))
+                            .addGroup(cpuInfoPanelLayout.createSequentialGroup()
+                                .addComponent(jLabel20)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(cpuProcessStateLabel))
+                            .addGroup(cpuInfoPanelLayout.createSequentialGroup()
+                                .addGap(93, 93, 93)
+                                .addComponent(jLabel14)))
+                        .addContainerGap(37, Short.MAX_VALUE))))
+        );
+        cpuInfoPanelLayout.setVerticalGroup(
+            cpuInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(cpuInfoPanelLayout.createSequentialGroup()
+                .addGap(12, 12, 12)
+                .addComponent(jLabel14)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(cpuInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel15)
+                    .addComponent(cpuProcessIdLabel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(cpuInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel20)
+                    .addComponent(cpuProcessStateLabel))
+                .addGap(12, 12, 12)
+                .addGroup(cpuInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel16)
+                    .addComponent(cpuProcessNameLabel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(cpuInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel17)
+                    .addComponent(cpuPcLabel))
+                .addGap(18, 18, 18)
+                .addGroup(cpuInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel18)
+                    .addComponent(cpuMarLabel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(cpuInfoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel19)
+                    .addComponent(cpuModeLabel))
+                .addContainerGap(72, Short.MAX_VALUE))
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -397,12 +510,15 @@ public class JFrame_principal extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 195, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGap(30, 30, 30)
+                                .addComponent(cpuInfoPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 695, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(104, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -423,16 +539,19 @@ public class JFrame_principal extends javax.swing.JFrame {
                             .addComponent(jLabel13))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(cpuInfoPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel11)
                             .addComponent(jLabel12))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                            .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(48, Short.MAX_VALUE))
         );
 
         pack();
@@ -572,17 +691,17 @@ public class JFrame_principal extends javax.swing.JFrame {
             case "Round Robin":
                 policyCode = "RR";
                 break;
-            case "FIFO (First In, Firts Out)": 
+            case "FIFO (First In, Firts Out)":
                 policyCode = "FCFS";
                 break;
             case "SRTF (Short Remaining Time First)":
                 policyCode = "SRT";
                 break;
-            case "Multilevel Queue": 
+            case "Multilevel Queue":
                 policyCode = "MLQ";
                 break;
             case "Multilevel Feedback Queue":
-                policyCode = "MLFQ"; 
+                policyCode = "MLFQ";
                 break;
             default:
                 policyCode = "FCFS"; // Política por defecto si algo falla
@@ -613,24 +732,25 @@ public class JFrame_principal extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_ComboBoxItemStateChanged
     /**
-     * Actualiza la JList de la Ready Queue. Debe ser llamado desde el Simulator.
+     * Actualiza la JList de la Ready Queue. Debe ser llamado desde el
+     * Simulator.
+     *
      * @param readyQueue La cola de listos actual del simulador.
      */
     public void updateReadyQueue(CustomQueue<PCB> readyQueue) {
         SwingUtilities.invokeLater(() -> {
-            readyListModel.clear(); 
-            for (PCB pcb : readyQueue.iterable()) { 
-                readyListModel.addElement(pcb); 
+            readyListModel.clear();
+            for (PCB pcb : readyQueue.iterable()) {
+                readyListModel.addElement(pcb);
             }
         });
     }
-    
-    
-        /**
+
+    /**
      * Actualiza la JList de la Blocked Queue.
      */
     public void updateReadySuspendedQueue(CustomQueue<PCB> readySuspendedQueue) {
-        
+
         SwingUtilities.invokeLater(() -> {
             readySuspendedListModel.clear();
             for (PCB pcb : readySuspendedQueue.iterable()) {
@@ -639,12 +759,11 @@ public class JFrame_principal extends javax.swing.JFrame {
         });
     }
 
-
     /**
      * Actualiza la JList de la Blocked Queue.
      */
     public void updateBlockedQueue(CustomQueue<PCB> blockedQueue) {
-        
+
         SwingUtilities.invokeLater(() -> {
             blockedListModel.clear();
             for (PCB pcb : blockedQueue.iterable()) {
@@ -664,7 +783,7 @@ public class JFrame_principal extends javax.swing.JFrame {
             }
         });
     }
-    
+
     public void updateBlockedSuspendedQueue(CustomQueue<PCB> BlockedSuspendedQueue) {
         SwingUtilities.invokeLater(() -> {
             blockedSuspendedListModel.clear();
@@ -673,10 +792,41 @@ public class JFrame_principal extends javax.swing.JFrame {
             }
         });
     }
-    
-    
-    
-      private void initializeQueueLists() {
+
+    public void updateCpuPanel(PCB runningPcb, CPU.Mode currentMode) {
+        // Es crucial ejecutar las actualizaciones de Swing en el EDT
+        SwingUtilities.invokeLater(() -> {
+            // Actualiza la etiqueta del modo CPU
+            cpuModeLabel.setText(currentMode.toString()); // Muestra "KERNEL" o "USER"
+
+            if (runningPcb != null) {
+                // Si hay un proceso en la CPU, muestra sus datos
+                cpuProcessIdLabel.setText(runningPcb.getProcessID_short());
+                cpuProcessNameLabel.setText(runningPcb.getProcessName());
+                cpuProcessStateLabel.setText(runningPcb.getState().toString()); // Debería ser RUNNING
+                cpuPcLabel.setText(String.valueOf(runningPcb.getProgramCounter()));
+                // Asumiendo que tienes un getter para MAR en PCB
+                // cpuMarLabel.setText(String.valueOf(runningPcb.getMemoryAddressRegister())); 
+                cpuMarLabel.setText("---"); // Placeholder si no tienes getMAR
+
+                // Cambiar color o estilo si está en USER mode (opcional)
+                cpuInfoPanel.setBackground(new Color(230, 255, 230)); // Verde claro
+
+            } else {
+                // Si la CPU está idle, muestra placeholders
+                cpuProcessIdLabel.setText("---");
+                cpuProcessNameLabel.setText("Idle");
+                cpuProcessStateLabel.setText("---");
+                cpuPcLabel.setText("---");
+                cpuMarLabel.setText("---");
+
+                // Cambiar color o estilo si está en KERNEL mode (opcional)
+                cpuInfoPanel.setBackground(new Color(230, 230, 255)); // Azul claro
+            }
+        });
+    }
+
+    private void initializeQueueLists() {
         // Renderizador personalizado
         ChartManager renderer = new ChartManager();
 
@@ -695,24 +845,23 @@ public class JFrame_principal extends javax.swing.JFrame {
         JScrollPane blockedScrollPane = new JScrollPane(blockedQueueList);
         jPanel5.setLayout(new BorderLayout());
         jPanel5.add(blockedScrollPane, BorderLayout.CENTER);
-        
-        
+
         readySuspendedListModel = new DefaultListModel<>();
         readySuspendedQueueList = new JList<>(readySuspendedListModel);
         readySuspendedQueueList.setCellRenderer(renderer);
         JScrollPane readySuspendedScrollPane = new JScrollPane(readySuspendedQueueList);
         jPanel4.setLayout(new BorderLayout());
         jPanel4.add(readySuspendedScrollPane, BorderLayout.CENTER);
-        
-        
+
         blockedSuspendedListModel = new DefaultListModel<>();
         blockedSuspendedQueueList = new JList<>(blockedSuspendedListModel);
         blockedSuspendedQueueList.setCellRenderer(renderer);
         JScrollPane blockedSuspendedScrollPane = new JScrollPane(blockedSuspendedQueueList);
         jPanel6.setLayout(new BorderLayout());
         jPanel6.add(blockedSuspendedScrollPane, BorderLayout.CENTER);
-        
+
     }
+
     /**
      * @param args the command line arguments
      */
@@ -743,7 +892,7 @@ public class JFrame_principal extends javax.swing.JFrame {
             JFrame_principal mainFrame = new JFrame_principal(mainSimulator);
             mainSimulator.setGui(mainFrame);
             mainFrame.setVisible(true);
-            
+
         });
     }
 
@@ -757,6 +906,13 @@ public class JFrame_principal extends javax.swing.JFrame {
     private javax.swing.JTextField Instructions;
     private javax.swing.JTextField TextCicloExcepcion;
     private javax.swing.JTextField TextCicloSatisfacer;
+    private javax.swing.JPanel cpuInfoPanel;
+    private javax.swing.JLabel cpuMarLabel;
+    private javax.swing.JLabel cpuModeLabel;
+    private javax.swing.JLabel cpuPcLabel;
+    private javax.swing.JLabel cpuProcessIdLabel;
+    private javax.swing.JLabel cpuProcessNameLabel;
+    private javax.swing.JLabel cpuProcessStateLabel;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton4;
     private javax.swing.JComboBox<String> jComboBox2;
@@ -765,7 +921,14 @@ public class JFrame_principal extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
+    private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
