@@ -10,68 +10,54 @@ import main.classes.PCB.ProcessState;
  *
  * @author fabys
  */
+
 public class RoundRobin {
-    public static void planificar(PCB[] procesosIniciales, int quantum) {
-        
-        // 1. Inicialización de la Cola de Listos
+    private static final int QUANTUM = 4;
+    
+    public static void planificar(PCB[] procesos) {
         CustomQueue<PCB> colaListos = new CustomQueue<>();
         
-        // Establecer el estado inicial y añadir a la cola
-        for (PCB p : procesosIniciales) {
-            p.setState(ProcessState.READY); // Lo ponemos en estado listo
-            colaListos.enqueue(p); 
+        for (PCB p : procesos) {
+            p.setState(ProcessState.READY);
+            colaListos.enqueue(p);
         }
 
-        int tiempoActual = 0;
-        System.out.println("--- INICIO SIMULACIÓN ROUND ROBIN (Quantum = " + quantum + ") ---");
-        System.out.println("Procesos en Ready Queue: " + colaListos.size());
+        int tiempoTotal = 0;
+        
+        System.out.println("=== ROUND ROBIN - Quantum Fijo: " + QUANTUM + " ===");
+        System.out.println("Procesos en cola: " + colaListos.size());
 
-        // 2. El Ciclo de Ejecución
         while (!colaListos.isEmpty()) {
+            PCB procesoActual = colaListos.dequeue();
+            procesoActual.setState(ProcessState.RUNNING);
             
-            // 2.1. Selección: Sacar el PCB de la cabeza (FRONT)
-            PCB pcb = colaListos.dequeue(); 
-            pcb.setState(ProcessState.RUNNING);
+            int instruccionesAEjecutar = Math.min(procesoActual.getRemainingInstructions(), QUANTUM);
             
-            // 2.2. Determinación del Tiempo de Ejecución (MIN(Instrucciones Restantes, Quantum))
-            int instruccionesARealizar = Math.min(pcb.getRemainingInstructions(), quantum);
+            int pcInicial = procesoActual.getProgramCounter();
+            procesoActual.setProgramCounter(pcInicial + instruccionesAEjecutar);
+            procesoActual.setRemainingInstructions(procesoActual.getRemainingInstructions() - instruccionesAEjecutar);
+            procesoActual.setTimeInCpu(procesoActual.getTimeInCpu() + instruccionesAEjecutar);
             
-            // 2.3. Simulación y Actualización del PCB
-            
-            // a) Ejecución de las instrucciones:
-            int pcInicial = pcb.getProgramCounter();
-            pcb.setProgramCounter(pcInicial + instruccionesARealizar);
-            
-            // b) Actualización del tiempo y las instrucciones:
-            pcb.setRemainingInstructions(pcb.getRemainingInstructions() - instruccionesARealizar);
-            pcb.setTimeInCpu(pcb.getTimeInCpu() + instruccionesARealizar);
-            
-            // c) Actualización del tiempo total de simulación:
-            tiempoActual += instruccionesARealizar;
+            tiempoTotal += instruccionesAEjecutar;
 
-            System.out.println("\n[T:" + tiempoActual + "] Ejecutando: " + pcb.getProcessName() + " (" + 
-                               pcb.getProcessID().toString().substring(0, 4) + ")");
-            System.out.println("   -> Instrucciones: " + (pcInicial + 1) + " hasta " + pcb.getProgramCounter() + 
-                               " (Quantum usado: " + instruccionesARealizar + ")");
+            System.out.println("\n[T=" + tiempoTotal + "] " + procesoActual.getProcessName() + 
+                             " ejecutó " + instruccionesAEjecutar + " instrucciones" +
+                             " (PC: " + pcInicial + "→" + procesoActual.getProgramCounter() + ")");
 
-
-            // 2.4. Comprobación (Preemptión o Finalización)
-            if (pcb.getRemainingInstructions() <= 0) {
-                // Caso 1: Proceso Terminado
-                pcb.setState(ProcessState.FINISHED);
-                System.out.println("  --> Proceso " + pcb.getProcessName() + " TERMINADO. Tiempo Total de CPU: " + pcb.getTimeInCpu());
+            if (procesoActual.getRemainingInstructions() <= 0) {
+                procesoActual.setState(ProcessState.FINISHED);
+                System.out.println("✓ " + procesoActual.getProcessName() + " TERMINADO");
             } else {
-                // Caso 2: Preemptión (Quantum Expirado)
-                // Vuelve al final de la cola (REAR)
-                pcb.setState(ProcessState.READY);
-                colaListos.enqueue(pcb); 
-                System.out.println("  --> Proceso " + pcb.getProcessName() + 
-                                   " desalojado. Restantes: " + pcb.getRemainingInstructions() + 
-                                   ". Vuelve a la cola. (Estado: READY)");
+                procesoActual.setState(ProcessState.READY);
+                colaListos.enqueue(procesoActual);
+                System.out.println("↻ " + procesoActual.getProcessName() + 
+                                 " vuelve a cola (" + procesoActual.getRemainingInstructions() + " inst. restantes)");
             }
         }
-        
-        System.out.println("\n--- SIMULACIÓN FINALIZADA en " + tiempoActual + " Ciclos ---");
+
+        System.out.println("\n=== TODOS LOS PROCESOS TERMINADOS ===");
+        System.out.println("Tiempo total de ejecución: " + tiempoTotal);
+    }
     
-}
+   
 }

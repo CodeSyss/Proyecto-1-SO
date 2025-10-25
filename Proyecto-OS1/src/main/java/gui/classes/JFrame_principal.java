@@ -157,6 +157,11 @@ public class JFrame_principal extends javax.swing.JFrame {
         jLabel9.setText("Algoritmos de Planificacion:");
 
         jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "SJF (Shortest Job First)", "Round Robin", "FIFO (First In, Firts Out)", "SRTF (Short Remaining Time First)", "Multilevel Queue", "Multilevel Feedback Queue" }));
+        jComboBox2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBox2ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -592,38 +597,6 @@ public class JFrame_principal extends javax.swing.JFrame {
     private void DuracionCicloActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DuracionCicloActionPerformed
 
     }//GEN-LAST:event_DuracionCicloActionPerformed
-    private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {
-        String selectedPolicyFullName = (String) jComboBox2.getSelectedItem();
-
-        String policyCode;
-        switch (selectedPolicyFullName) {
-            case "SJF (Shortest Job First)":
-                policyCode = "SJF";
-                break;
-            case "Round Robin":
-                policyCode = "RR";
-                break;
-            case "FIFO (First In, Firts Out)": 
-                policyCode = "FCFS";
-                break;
-            case "SRTF (Short Remaining Time First)":
-                policyCode = "SRT";
-                break;
-            case "Multilevel Queue": 
-                policyCode = "MLQ";
-                break;
-            case "Multilevel Feedback Queue":
-                policyCode = "MLFQ"; 
-                break;
-            default:
-                policyCode = "FCFS"; // Política por defecto si algo falla
-        }
-
-        if (this.simulator != null) {
-            this.simulator.setPlanningPolicy(policyCode);
-            System.out.println("GUI: Política de planificación -> " + policyCode);
-        }
-    }
     private void ComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_ComboBoxItemStateChanged
         String tipoSeleccionado = (String) ComboBox.getSelectedItem();
 
@@ -644,7 +617,10 @@ public class JFrame_principal extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_ComboBoxItemStateChanged
 
-    /**
+    private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jComboBox2ActionPerformed
+  /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
