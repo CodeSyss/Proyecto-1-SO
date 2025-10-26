@@ -74,8 +74,7 @@ public class Simulator implements Runnable {
                 checkBlockedQueue();
 
                 // PLANIFICADOR A MEDIO PLAZO 
-                performSwapIn();
-
+                //performSwapIn();
                 // PLANIFICADOR A LARGO PLAZO 
                 longTermScheduler();
 
@@ -183,9 +182,9 @@ public class Simulator implements Runnable {
 
     private void dispatchProcessToCpu() throws InterruptedException {
         // Solo despachar cada X ciclos o bajo condiciones específicas
-        if (globalCycle % 10 != 0) { // Solo cada 2 ciclos, por ejemplo
-            return;
-        }
+        //if (globalCycle % 10 != 0) { // Solo cada 2 ciclos, por ejemplo
+        //   return;
+        //}
 
         readyQueueSemaphore.acquire();
         try {
@@ -203,24 +202,63 @@ public class Simulator implements Runnable {
     }
 
     private void checkRunningProcess() {
+        // Usa isAvailable() si ese es el nombre correcto en tu clase CPU
         if (!cpu.isAvailable()) {
-            PCB current = cpu.getProcessActual();
+            PCB current = cpu.getProcessActual(); // Usa getProcessActual() o getPcbActual()
+
+            // Imprimir estado actual ANTES de cualquier cambio
             System.out.println("🔍 CHECKING proceso en CPU: " + current.getProcessID_short()
                     + " - PC: " + current.getProgramCounter()
                     + "/" + current.getTotalInstructions()
                     + " - State: " + current.getState());
 
-            // Verificar si el proceso realmente terminó
+            // --- CASO 1: Proceso YA HA TERMINADO? ---
+            // (Verifica si el PC ya alcanzó el total)
             if (current.getProgramCounter() >= current.getTotalInstructions()) {
-                System.out.println("✅ TERMINANDO proceso: " + current.getProcessID_short());
-                current.setState(PCB.ProcessState.FINISHED);
-                cpu.unloadProcess(); // ¡ESTA ES LA CLAVE!
-                System.out.println("CPU después de unload: " + (cpu.isAvailable() ? "LIBRE" : "OCUPADO"));
+
+                System.out.println("✅ TERMINANDO proceso: " + current.getProcessID_short() + ". Unloading CPU...");
+                if (current.getState() != PCB.ProcessState.FINISHED) {
+                    current.setState(PCB.ProcessState.FINISHED);
+                }
+
+                PCB finishedProcess = cpu.unloadProcess(); // Llama al método correcto en CPU
+
+                if (finishedProcess != null) {
+                    finishedQueue.enqueue(finishedProcess);
+                    usedMemory -= finishedProcess.getMemorySize();
+                    System.out.println("SIM: Proceso " + finishedProcess.getProcessID_short() + " -> Finished Queue.");
+                }
+                System.out.println("CPU después de unload (FINISHED): " + (cpu.isAvailable() ? "LIBRE" : "OCUPADO"));
+
+                // --- CASO 2: Proceso AÚN NO HA TERMINADO (Debe avanzar) ---
             } else {
-                // Solo avanzar el contador si no ha terminado
+                // ¡Avanzamos el PC AQUÍ, y solo aquí!
                 current.setProgramCounter(current.getProgramCounter() + 1);
+                // (También puedes avanzar MAR y timeInCpu aquí si lo deseas)
+                // current.setTimeInCpu(current.getTimeInCpu() + 1);
+                // current.setRemainingInstructions(current.getRemainingInstructions() - 1);
                 System.out.println("PC avanzado a: " + current.getProgramCounter());
+
+                // --- LÓGICA DE E/S (COMO PEDISTE) ---
+                // Ahora que el PC avanzó, verificamos si este NUEVO paso es una solicitud de E/S.
+                if ("I/O-Bound".equals(current.getProcessType())
+                        && current.getCyclesForException() > 0
+                        && (current.getProgramCounter() % current.getCyclesForException() == 0)) {
+                    // ¡Sí! Es hora de bloquear.
+                    System.out.println("🚧 BLOQUEANDO proceso por E/S: " + current.getProcessID_short() + " en PC=" + current.getProgramCounter());
+                    PCB blockedProcess = cpu.unloadProcess();
+
+                    if (blockedProcess != null) {
+                        blockedProcess.setState(PCB.ProcessState.BLOCKED);
+                        blockedQueue.enqueue(blockedProcess);
+                        System.out.println("SIM: Proceso " + blockedProcess.getProcessID_short() + " -> Blocked Queue.");
+                    }
+                    System.out.println("CPU después de unload (I/O): " + (cpu.isAvailable() ? "LIBRE" : "OCUPADO"));
+                }
+                // Si no es E/S, el proceso simplemente continúa en la CPU para el siguiente ciclo.
             }
+        } else {
+            System.out.println("SIM: CPU is Idle this cycle.");
         }
     }
 
@@ -446,39 +484,33 @@ public class Simulator implements Runnable {
                 gui.updateReadySuspendedQueue(readySuspendedSnapshot);
                 gui.updateBlockedSuspendedQueue(blockedSuspendedSnapshot);
                 gui.updateCpuPanel(runningSnapshot, modeSnapshot);
-
-                gui.updateGlobalCycleLabel(globalCycle);
-                // gui.updateMemoryUsage(memSnapshot, totalMemSnapshot);
+                gui.updateGlobalCycleLabel(cycleSnapshot);
+                gui.updateMemoryUsage(memSnapshot, totalMemSnapshot);
             });
         }
     }
 
     public void createRandomProcesses(int count) {
-        System.out.println("SIMULATOR: Solicitud para crear " + count + " procesos aleatorios...");
+        System.out.println("SIMULATOR: Solicitud para crear " + count + " procesos aleatorios CORTOS...");
         for (int i = 0; i < count; i++) {
-            // --- Generar Parámetros Aleatorios ---
-            String name = "Proc_Rand_" + (globalCycle + i); // Nombre simple basado en el ciclo
-            int instructions = 50 + randomGenerator.nextInt(251); // Entre 50 y 300 instrucciones
+            String name = "Proc_Rand_S" + (globalCycle + i);
+            // Genera un número entre 0 y 29, luego suma 1. Rango: 1 a 30.
+            int instructions = 1 + randomGenerator.nextInt(30);
 
             String type;
             int cyclesForException = 0;
             int satisfyCycles = 0;
-
-            // Decide aleatoriamente si es CPU o I/O Bound (ej. 70% CPU, 30% I/O)
-            if (randomGenerator.nextInt(10) < 3) { // 30% de probabilidad de ser I/O Bound
+            if (randomGenerator.nextInt(10) < 3) {
                 type = "I/O Bound";
-                // Ciclos aleatorios para E/S
-                cyclesForException = 10 + randomGenerator.nextInt(41); // Entre 10 y 50
-                satisfyCycles = 20 + randomGenerator.nextInt(81);    // Entre 20 y 100
+                int maxExcCycle = Math.max(1, instructions / 2);
+                cyclesForException = 1 + randomGenerator.nextInt(maxExcCycle);
+                satisfyCycles = 5 + randomGenerator.nextInt(21);
             } else {
                 type = "CPU Bound";
             }
-
-            // --- Llama al método de creación existente ---
-            // Pasamos los parámetros generados aleatoriamente
             createProcessFromUI(name, instructions, type, cyclesForException, satisfyCycles);
         }
-        System.out.println("SIMULATOR: " + count + " procesos aleatorios añadidos a la New Queue.");
+        System.out.println("SIMULATOR: " + count + " procesos aleatorios CORTOS añadidos a la New Queue.");
     }
 
     // Método para que el 'main' pueda conectarlos

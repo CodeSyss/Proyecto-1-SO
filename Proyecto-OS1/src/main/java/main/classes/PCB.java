@@ -148,19 +148,16 @@ public class PCB implements Runnable {
                          + " executing instruction " + this.programCounter + "/" + this.totalInstructions);
             
             
-            if ("I/O-Bound".equals(this.processType)) {
-                System.out.println("        DEBUG I/O Check: PC=" + this.programCounter 
-                             + ", CyclesForExc=" + this.cyclesForException 
-                             + ", Remainder=" + (this.programCounter % this.cyclesForException));
-                if ("I/O-Bound".equals(this.processType) && this.cyclesForException > 0 && (this.programCounter % this.cyclesForException == 0)) {
-                    this.ioRequestFlag = true;
-                    System.out.println("    [CPU EXEC] -> PCB ID: " + this.getProcessID_short() + " *** requests I/O ***");
-                }
+            if ("I/O-Bound".equals(this.processType) && this.cyclesForException > 0 && (this.programCounter % this.cyclesForException == 0)) {
+                this.ioRequestFlag = true; // Levanta la bandera
+                System.out.println("    [CPU EXEC] -> PCB ID: " + this.getProcessID_short() + " *** requests I/O ***");
+                // NO hacemos break. El Simulador detectará la bandera y nos descargará.
             }
 
             try {
                 Thread.sleep(Long.MAX_VALUE);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); 
             }
 
             System.out.println("    [CPU EXEC] -> PCB ID: " + this.getProcessID().toString().substring(0, 4)

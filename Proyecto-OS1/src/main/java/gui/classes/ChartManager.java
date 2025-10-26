@@ -20,7 +20,7 @@ public class ChartManager extends JPanel implements ListCellRenderer<PCB> {
     private JLabel idLabel;
     private JLabel stateLabel;
     private JLabel pcLabel;
-    
+    private JLabel typeLabel;
     public ChartManager() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Organiza verticalmente
         setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5)); // Margen interior
@@ -29,6 +29,7 @@ public class ChartManager extends JPanel implements ListCellRenderer<PCB> {
         idLabel = new JLabel();
         stateLabel = new JLabel();
         pcLabel = new JLabel();
+        typeLabel = new JLabel();
 
         // Estilos básicos (puedes personalizarlos más)
         nameLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -36,11 +37,12 @@ public class ChartManager extends JPanel implements ListCellRenderer<PCB> {
         idLabel.setForeground(Color.DARK_GRAY);
         stateLabel.setFont(new Font("SansSerif", Font.ITALIC, 11));
         pcLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
-
+        typeLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
         add(nameLabel);
         add(idLabel);
         add(stateLabel);
         add(pcLabel);
+        add(typeLabel);
     }
     
         @Override
@@ -53,7 +55,7 @@ public class ChartManager extends JPanel implements ListCellRenderer<PCB> {
         idLabel.setText("ID: " + pcb.getProcessID_short());
         stateLabel.setText("Estado: " + pcb.getState().toString());
         pcLabel.setText("PC: " + pcb.getProgramCounter() + "/" + pcb.getTotalInstructions());
-
+        typeLabel.setText("Tipo: " + pcb.getProcessType());
         // Colores de fondo y texto según si está seleccionado
         if (isSelected) {
             setBackground(list.getSelectionBackground());
