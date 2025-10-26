@@ -43,7 +43,27 @@ public class PCB implements Runnable {
     private int BASE_MEMORY = 64;
     private boolean ioRequestFlag = false;
     private int cyclesSpentBlocked = 0;      // Cronómetro para el tiempo en estado de bloqueo cuando es i/o bound 
+    private int quantumTimeElapsed = 0; 
+    private long timeArrivedReady;
 
+    public int getQuantumTimeElapsed() {
+        return quantumTimeElapsed;
+    }
+
+    public void setQuantumTimeElapsed(int quantumTimeElapsed) {
+        this.quantumTimeElapsed = quantumTimeElapsed;
+    }
+
+    public long getTimeArrivedReady() {
+        return timeArrivedReady;
+    }
+
+    public void setTimeArrivedReady(long timeArrivedReady) {
+        this.timeArrivedReady = timeArrivedReady;
+    }
+    
+    
+    
     public int getPriority() {
         return priority;
     }

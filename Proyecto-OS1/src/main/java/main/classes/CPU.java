@@ -14,6 +14,12 @@ public class CPU {
         KERNEL,
         USER
     }
+    
+    private static final CPU INSTANCE = new CPU();
+    
+    public static CPU getInstance() {
+        return INSTANCE;
+    }
 
     private Mode currentMode;
     private PCB processActual;

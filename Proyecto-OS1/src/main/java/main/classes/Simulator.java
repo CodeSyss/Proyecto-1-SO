@@ -161,6 +161,8 @@ public class Simulator implements Runnable {
                     PCB admittedProcess = newQueue.dequeue();
                     admittedProcess.setState(PCB.ProcessState.READY);
                     usedMemory += admittedProcess.getMemorySize();
+                    admittedProcess.setTimeArrivedReady(this.globalCycle);
+
 
                     readyQueueSemaphore.acquire();
                     try {
@@ -183,14 +185,14 @@ public class Simulator implements Runnable {
     
     private void dispatchProcessToCpu() throws InterruptedException {
     // Solo despachar cada X ciclos o bajo condiciones específicas
-    if (globalCycle % 20 != 0) { // Solo cada 2 ciclos, por ejemplo
+    if (globalCycle % 10 != 0) { // Solo cada 2 ciclos, por ejemplo
         return;
     }
     
     readyQueueSemaphore.acquire();
     try {
         if (cpu.isAvailable() && !readyQueue.isEmpty()) {
-            PCB processToDispatch = planningPolicies.selectNextProcess(readyQueue);
+            PCB processToDispatch = planningPolicies.selectNextProcess(readyQueue, this.globalCycle);
             if (processToDispatch != null) {
                 readyQueue.remove(processToDispatch); 
                 cpu.loadProcess(processToDispatch);
