@@ -278,4 +278,8 @@ public class PCB implements Runnable {
         this.stackPointer = stackPointer;
     }
 
+    public int getMemoryAddressRegister() {
+        return memoryAddressRegister;
+    }
+
 }

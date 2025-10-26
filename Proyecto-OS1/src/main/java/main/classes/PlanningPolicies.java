@@ -27,31 +27,25 @@ public class PlanningPolicies {
         if (readyQueue.isEmpty()) {
             return null; 
         }
-
         switch (currentPolicy) {
             case "SJF":
-                // return selectSJF(readyQueue); // A implementar
                 System.out.println("PLANNER: SJF selected (using FCFS logic for now).");
-                return selectFCFS(readyQueue); // Usa FCFS mientras no esté listo
+                return selectSJF(readyQueue); 
             case "SRT":
-                // return selectSRT_Candidate(readyQueue); // A implementar
                 System.out.println("PLANNER: SRT selected (using FCFS logic for now).");
-                return selectFCFS(readyQueue); // Usa FCFS mientras no esté listo
+                return selectSRT(readyQueue);
             case "HRRN":
-                // return selectHRRN(readyQueue); // A implementar
                 System.out.println("PLANNER: HRRN selected (using FCFS logic for now).");
-                return selectHRRN(readyQueue, globalCycle); // Usa FCFS mientras no esté listo
+                return selectHRRN(readyQueue, globalCycle);
              case "MLQ":
-                // Lógica más compleja requerida
                 System.out.println("PLANNER: MLQ selected (using FCFS logic for now).");
                 return selectFCFS(readyQueue);
              case "MLFQ":
-                 // Lógica más compleja requerida
                 System.out.println("PLANNER: MLFQ selected (using FCFS logic for now).");
-                return selectFCFS(readyQueue);
+                return selectMLFQ_Priority(readyQueue);
 
-            case "FCFS": // FCFS (FIFO)
-            case "RR":   // Round Robin también selecciona el primero
+            case "FCFS": 
+            case "RR":  
             default:
                 System.out.println("PLANNER: FCFS/RR selected.");
                 return selectFCFS(readyQueue);

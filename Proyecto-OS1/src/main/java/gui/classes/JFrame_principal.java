@@ -21,6 +21,7 @@ import javax.swing.JList;
 import javax.swing.JScrollPane;
 import java.awt.BorderLayout; // Para añadir JScrollPane a los JPanels
 import java.awt.Color;
+import java.awt.Font;
 import main.classes.CPU;
 
 /**
@@ -42,7 +43,6 @@ public class JFrame_principal extends javax.swing.JFrame {
     private DefaultListModel<PCB> readyListModel;
     private DefaultListModel<PCB> blockedListModel;
     private DefaultListModel<PCB> finishedListModel;
-    // (Añade modelos para las colas suspendidas si las vas a mostrar)
     private DefaultListModel<PCB> readySuspendedListModel;
     private DefaultListModel<PCB> blockedSuspendedListModel;
 
@@ -50,7 +50,6 @@ public class JFrame_principal extends javax.swing.JFrame {
     private JList<PCB> readyQueueList;
     private JList<PCB> blockedQueueList;
     private JList<PCB> finishedQueueList;
-    // (Añade JLists para las colas suspendidas)
     private JList<PCB> readySuspendedQueueList;
     private JList<PCB> blockedSuspendedQueueList;
 
@@ -59,7 +58,9 @@ public class JFrame_principal extends javax.swing.JFrame {
 
         initComponents();
         tipoFuente = new Fuentes();
-
+        Font currentFont = cycleLabel.getFont();
+        Font newFont = currentFont.deriveFont(Font.BOLD, 24f);
+        cycleLabel.setFont(newFont);
         // --- INICIALIZACIÓN DE COMPONENTES VISUALES PARA LAS COLAS ---
         initializeQueueLists();
         jLabel1.setFont(tipoFuente.fuente(tipoFuente.Inter, 0, 22));
@@ -131,6 +132,8 @@ public class JFrame_principal extends javax.swing.JFrame {
         cpuProcessIdLabel = new javax.swing.JLabel();
         cpuMarLabel = new javax.swing.JLabel();
         cpuModeLabel = new javax.swing.JLabel();
+        cycleLabel = new javax.swing.JLabel();
+        randomProcessButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -488,6 +491,15 @@ public class JFrame_principal extends javax.swing.JFrame {
                 .addContainerGap(72, Short.MAX_VALUE))
         );
 
+        cycleLabel.setText("Ciclo de reloj Global");
+
+        randomProcessButton.setText("Crear 20 procesos aleatorios");
+        randomProcessButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                randomProcessButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -495,12 +507,15 @@ public class JFrame_principal extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(25, 25, 25)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 695, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 314, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(53, 53, 53)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(randomProcessButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 314, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(cycleLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(47, 47, 47)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                 .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -516,8 +531,7 @@ public class JFrame_principal extends javax.swing.JFrame {
                                     .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addGap(30, 30, 30)
                                 .addComponent(cpuInfoPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 695, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(104, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -526,13 +540,7 @@ public class JFrame_principal extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addGap(18, 18, 18)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel10)
@@ -540,18 +548,28 @@ public class JFrame_principal extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(cpuInfoPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addGap(18, 18, 18)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cycleLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 46, Short.MAX_VALUE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel11)
                             .addComponent(jLabel12))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(48, Short.MAX_VALUE))
+                            .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(randomProcessButton, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(35, Short.MAX_VALUE))
         );
 
         pack();
@@ -729,6 +747,14 @@ public class JFrame_principal extends javax.swing.JFrame {
             this.repaint();
         }
     }//GEN-LAST:event_ComboBoxItemStateChanged
+
+    private void randomProcessButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_randomProcessButtonActionPerformed
+        if (this.simulator != null) {
+            // Llama al nuevo método del simulador para crear 20 procesos
+            this.simulator.createRandomProcesses(20);
+            JOptionPane.showMessageDialog(this, "Se han añadido 20 procesos aleatorios al sistema.", "Procesos Creados", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }//GEN-LAST:event_randomProcessButtonActionPerformed
     /**
      * Actualiza la JList de la Ready Queue. Debe ser llamado desde el
      * Simulator.
@@ -792,35 +818,32 @@ public class JFrame_principal extends javax.swing.JFrame {
     }
 
     public void updateCpuPanel(PCB runningPcb, CPU.Mode currentMode) {
-        // Es crucial ejecutar las actualizaciones de Swing en el EDT
         SwingUtilities.invokeLater(() -> {
-            // Actualiza la etiqueta del modo CPU
             cpuModeLabel.setText(currentMode.toString()); // Muestra "KERNEL" o "USER"
 
             if (runningPcb != null) {
-                // Si hay un proceso en la CPU, muestra sus datos
                 cpuProcessIdLabel.setText(runningPcb.getProcessID_short());
                 cpuProcessNameLabel.setText(runningPcb.getProcessName());
-                cpuProcessStateLabel.setText(runningPcb.getState().toString()); // Debería ser RUNNING
+                cpuProcessStateLabel.setText(runningPcb.getState().toString());
                 cpuPcLabel.setText(String.valueOf(runningPcb.getProgramCounter()));
-                // Asumiendo que tienes un getter para MAR en PCB
-                // cpuMarLabel.setText(String.valueOf(runningPcb.getMemoryAddressRegister())); 
-                cpuMarLabel.setText("---"); // Placeholder si no tienes getMAR
-
-                // Cambiar color o estilo si está en USER mode (opcional)
+                cpuMarLabel.setText(String.valueOf(runningPcb.getMemoryAddressRegister())); 
+                cpuMarLabel.setText("---");
                 cpuInfoPanel.setBackground(new Color(230, 255, 230)); // Verde claro
 
             } else {
-                // Si la CPU está idle, muestra placeholders
                 cpuProcessIdLabel.setText("---");
                 cpuProcessNameLabel.setText("Idle");
                 cpuProcessStateLabel.setText("---");
                 cpuPcLabel.setText("---");
                 cpuMarLabel.setText("---");
-
-                // Cambiar color o estilo si está en KERNEL mode (opcional)
                 cpuInfoPanel.setBackground(new Color(230, 230, 255)); // Azul claro
             }
+        });
+    }
+
+    public void updateGlobalCycleLabel(int currentCycle) {
+        SwingUtilities.invokeLater(() -> {
+            cycleLabel.setText("Ciclo Global: " + currentCycle);
         });
     }
 
@@ -911,6 +934,7 @@ public class JFrame_principal extends javax.swing.JFrame {
     private javax.swing.JLabel cpuProcessIdLabel;
     private javax.swing.JLabel cpuProcessNameLabel;
     private javax.swing.JLabel cpuProcessStateLabel;
+    private javax.swing.JLabel cycleLabel;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton4;
     private javax.swing.JComboBox<String> jComboBox2;
@@ -941,5 +965,6 @@ public class JFrame_principal extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JTextField nombreProceso;
+    private javax.swing.JButton randomProcessButton;
     // End of variables declaration//GEN-END:variables
 }
