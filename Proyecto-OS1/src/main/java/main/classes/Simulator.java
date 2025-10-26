@@ -39,6 +39,17 @@ public class Simulator implements Runnable {
     private boolean isRunning = false;
     private boolean isPaused = false;
 
+    // --- NUEVOS ATRIBUTOS PARA CÁLCULO DE MÉTRICAS ---
+    private int cpuBusyCycles = 0;           // Contador de ciclos que la CPU estuvo ocupada
+    private int totalProcessesFinished = 0;  // Contador de procesos que han terminado
+    private double totalWaitTime = 0.0;      // Suma total del tiempo de espera de todos los procesos terminados
+    private double totalResponseTime = 0.0;  // Suma total del tiempo de respuesta
+
+    // --- Atributos para guardar los valores calculados en cada ciclo ---
+    private double currentThroughput = 0.0;
+    private double currentCpuUtil = 0.0;
+    private double currentAvgWaitTime = 0.0;
+
     public Simulator() {
 
         this.cycleDurationMs = 0;
@@ -67,6 +78,10 @@ public class Simulator implements Runnable {
                     Thread.sleep(100);
                 }
 
+                if (!cpu.isAvailable()) {
+                    cpuBusyCycles++;
+                }
+
                 //Liberar CPU
                 checkRunningProcess();
 
@@ -80,6 +95,15 @@ public class Simulator implements Runnable {
 
                 // PLANIFICADOR A CORTO PLAZO 
                 dispatchProcessToCpu();
+
+                // --- LÓGICA DE MÉTRICAS: Calcular promedios ---
+                if (globalCycle > 0) {
+                    this.currentThroughput = (double) totalProcessesFinished / globalCycle;
+                    this.currentCpuUtil = (double) cpuBusyCycles / globalCycle;
+                }
+                if (totalProcessesFinished > 0) {
+                    this.currentAvgWaitTime = totalWaitTime / totalProcessesFinished;
+                }
 
                 // 6. ACTUALIZAR GUI (Enviar estado actual a la interfaz)
                 updateGUI();
@@ -192,6 +216,15 @@ public class Simulator implements Runnable {
                 PCB processToDispatch = planningPolicies.selectNextProcess(readyQueue, this.globalCycle);
                 if (processToDispatch != null) {
                     readyQueue.remove(processToDispatch);
+
+                    // --- CÁLCULO DE TIEMPO DE RESPUESTA ---
+                    if (processToDispatch.getTimeInCpu() == 0) { // Primera vez que se ejecuta
+                        long responseTime = this.globalCycle - processToDispatch.getTimeArrivedReady();
+                        this.totalResponseTime += responseTime;
+                        System.out.println("   Tiempo de Respuesta para " + processToDispatch.getProcessID_short() + ": " + responseTime + " ciclos.");
+                    }
+                    // -------------------------------------
+
                     cpu.loadProcess(processToDispatch);
                     System.out.println("STS: Proceso " + processToDispatch.getProcessID_short() + " despachado a la CPU.");
                 }
@@ -224,6 +257,13 @@ public class Simulator implements Runnable {
                 PCB finishedProcess = cpu.unloadProcess(); // Llama al método correcto en CPU
 
                 if (finishedProcess != null) {
+
+                    // --- ¡ACUMULAR MÉTRICAS! ---
+                    this.totalProcessesFinished++;
+                    long turnaroundTime = this.globalCycle - finishedProcess.getTimeArrivedReady();
+                    long waitTime = turnaroundTime - finishedProcess.getTimeInCpu();
+                    this.totalWaitTime += waitTime;
+
                     finishedQueue.enqueue(finishedProcess);
                     usedMemory -= finishedProcess.getMemorySize();
                     System.out.println("SIM: Proceso " + finishedProcess.getProcessID_short() + " -> Finished Queue.");
@@ -232,15 +272,9 @@ public class Simulator implements Runnable {
 
                 // --- CASO 2: Proceso AÚN NO HA TERMINADO (Debe avanzar) ---
             } else {
-                // ¡Avanzamos el PC AQUÍ, y solo aquí!
                 current.setProgramCounter(current.getProgramCounter() + 1);
-                // (También puedes avanzar MAR y timeInCpu aquí si lo deseas)
-                // current.setTimeInCpu(current.getTimeInCpu() + 1);
-                // current.setRemainingInstructions(current.getRemainingInstructions() - 1);
                 System.out.println("PC avanzado a: " + current.getProgramCounter());
 
-                // --- LÓGICA DE E/S (COMO PEDISTE) ---
-                // Ahora que el PC avanzó, verificamos si este NUEVO paso es una solicitud de E/S.
                 if ("I/O-Bound".equals(current.getProcessType())
                         && current.getCyclesForException() > 0
                         && (current.getProgramCounter() % current.getCyclesForException() == 0)) {
@@ -276,6 +310,8 @@ public class Simulator implements Runnable {
                 blockedQueue.remove(processReady);
                 processReady.resetCyclesBlocked();
                 processReady.setState(PCB.ProcessState.READY);
+
+                processReady.setTimeArrivedReady(this.globalCycle);
 
                 readyQueueSemaphore.acquire();
                 try {
@@ -476,6 +512,9 @@ public class Simulator implements Runnable {
             final int cycleSnapshot = this.globalCycle;
             final int memSnapshot = this.usedMemory;
             final int totalMemSnapshot = total_RAN_Memory;
+            final double throughputSnapshot = this.currentThroughput;
+            final double cpuUtilSnapshot = this.currentCpuUtil;
+            final double avgWaitTimeSnapshot = this.currentAvgWaitTime;
 
             SwingUtilities.invokeLater(() -> {
                 gui.updateReadyQueue(readySnapshot);
@@ -486,6 +525,7 @@ public class Simulator implements Runnable {
                 gui.updateCpuPanel(runningSnapshot, modeSnapshot);
                 gui.updateGlobalCycleLabel(cycleSnapshot);
                 gui.updateMemoryUsage(memSnapshot, totalMemSnapshot);
+                gui.updateMetricas(cycleSnapshot, throughputSnapshot, cpuUtilSnapshot, avgWaitTimeSnapshot);
             });
         }
     }

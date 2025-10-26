@@ -127,7 +127,6 @@ public class PCB implements Runnable {
         }
 
     }
-
     public int getMemorySize() {
         return memorySize;
     }
