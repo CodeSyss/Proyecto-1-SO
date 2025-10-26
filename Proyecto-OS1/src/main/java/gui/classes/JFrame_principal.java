@@ -627,14 +627,12 @@ public class JFrame_principal extends javax.swing.JFrame {
         }
 
         this.simulator.createProcessFromUI(processName, totalInstructions, processType, cyclesForException, satisfyCycles);
-
         nombreProceso.setText("");
         Instructions.setText("");
         TextCicloExcepcion.setText("");
         TextCicloSatisfacer.setText("");
 
         JOptionPane.showMessageDialog(this, "Proceso '" + processName + "' añadido al sistema.", "Proceso Creado", JOptionPane.INFORMATION_MESSAGE);
-
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void GuardarConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GuardarConfigActionPerformed

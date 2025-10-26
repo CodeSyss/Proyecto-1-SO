@@ -129,21 +129,27 @@ public class Simulator implements Runnable {
     }
 
     public void createProcessFromUI(String name, int instructions, String type, int cyclesForException, int satisfyCycles) {
-        PCB newProcess;
+    PCB newProcess;
 
-        if ("I/O Bound".equals(type)) {
-            System.out.println("SIMULATOR: Creando I/O Bound con Name=" + name + ", Instr=" + instructions + ", ExcCycle=" + cyclesForException + ", SatCycle=" + satisfyCycles);
-            newProcess = new PCB(name, instructions, cyclesForException, satisfyCycles);
-        } else {
-            System.out.println("SIMULATOR: Creando CPU Bound con Name=" + name + ", Instr=" + instructions);
-            newProcess = new PCB(name, instructions);
-        }
-        newQueue.enqueue(newProcess);
-        System.out.println("DEBUG PCB CREATED: ID=" + newProcess.getProcessID_short() 
-                     + ", Type=" + newProcess.getProcessType() 
-                     + ", CyclesForExc=" + newProcess.getCyclesForException()); //
-
+    if ("I/O Bound".equals(type)) {
+        System.out.println("SIMULATOR: Creando I/O Bound con Name=" + name + ", Instr=" + instructions + ", ExcCycle=" + cyclesForException + ", SatCycle=" + satisfyCycles);
+        newProcess = new PCB(name, instructions, cyclesForException, satisfyCycles);
+    } else {
+        System.out.println("SIMULATOR: Creando CPU Bound con Name=" + name + ", Instr=" + instructions);
+        newProcess = new PCB(name, instructions);
     }
+    
+    newProcess.setState(PCB.ProcessState.NEW);
+    newQueue.enqueue(newProcess);
+    
+    System.out.println("DEBUG PCB CREATED: ID=" + newProcess.getProcessID_short() 
+                 + ", Type=" + newProcess.getProcessType() 
+                 + ", State=" + newProcess.getState()
+                 + ", CyclesForExc=" + newProcess.getCyclesForException());
+
+}
+
+
 
     //Planificador a largo plazo
     private void longTermScheduler() {
@@ -174,35 +180,28 @@ public class Simulator implements Runnable {
             newQueueSemaphore.release();
         }
     }
+    
     private void dispatchProcessToCpu() throws InterruptedException {
-
-        readyQueueSemaphore.acquire();
-
-        try {
-
-            if (cpu.isAvailable() && !readyQueue.isEmpty()) {
-
-                PCB processToDispatch = planningPolicies.selectNextProcess(readyQueue);
-
-                if (processToDispatch != null) {
-
-                   readyQueue.remove(processToDispatch); 
-
-                   cpu.loadProcess(processToDispatch);
-
-                   System.out.println("STS: Proceso " + processToDispatch.getProcessID_short() + " despachado a la CPU.");
-
-                }
-
-            }
-
-        } finally {
-
-            readyQueueSemaphore.release();
-
-        }
-
+    // Solo despachar cada X ciclos o bajo condiciones específicas
+    if (globalCycle % 20 != 0) { // Solo cada 2 ciclos, por ejemplo
+        return;
     }
+    
+    readyQueueSemaphore.acquire();
+    try {
+        if (cpu.isAvailable() && !readyQueue.isEmpty()) {
+            PCB processToDispatch = planningPolicies.selectNextProcess(readyQueue);
+            if (processToDispatch != null) {
+                readyQueue.remove(processToDispatch); 
+                cpu.loadProcess(processToDispatch);
+                System.out.println("STS: Proceso " + processToDispatch.getProcessID_short() + " despachado a la CPU.");
+            }
+        }
+    } finally {
+        readyQueueSemaphore.release();
+    }
+}
+
 
 
     private void checkRunningProcess() {
